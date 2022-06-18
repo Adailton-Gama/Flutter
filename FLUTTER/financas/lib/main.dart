@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:financas/pages/splash.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/src/widgets/framework.dart';
 
 void main() {
   runApp(const Home());
