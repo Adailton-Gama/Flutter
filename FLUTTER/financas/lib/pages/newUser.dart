@@ -1,7 +1,5 @@
 import 'dart:io';
 import 'package:financas/pages/loginPage.dart';
-import 'package:flutter/src/foundation/key.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -175,7 +173,8 @@ class _NewUserState extends State<NewUser> {
     );
   }
 
-   void dispose(){
+   @override
+  void dispose(){
     if(Platform.isAndroid){
       SystemNavigator.pop();
     }else{

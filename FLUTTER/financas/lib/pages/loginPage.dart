@@ -1,13 +1,8 @@
 import 'dart:io';
-import 'package:financas/main.dart';
 import 'package:financas/pages/mainMenu.dart';
 import 'package:financas/pages/newUser.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/src/foundation/key.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import'package:flutter/material.dart';
-import 'dart:ui';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -175,7 +170,7 @@ class _LoginPageState extends State<LoginPage> {
                           ElevatedButton(
                             style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Color.fromRGBO(61, 61, 61, 1))),
                             onPressed: (){
-                              Navigator.push(context, new MaterialPageRoute(builder: ((context) => NewUser())));
+                              Navigator.push(context, MaterialPageRoute(builder: ((context) => NewUser())));
                             }, 
                             child: Text('CADASTRAR')),
                       ],
@@ -196,7 +191,8 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
   }
-   void dispose(){
+   @override
+  void dispose(){
     if(Platform.isAndroid){
       SystemNavigator.pop();
     }else{

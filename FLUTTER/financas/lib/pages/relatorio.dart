@@ -1,20 +1,14 @@
-import 'package:financas/pages/despesas.dart';
-import 'package:financas/pages/diarias.dart';
-import 'package:financas/pages/gerirAlunos.dart';
-import 'package:financas/pages/mensalidades.dart';
-import 'package:financas/pages/relatorio.dart';
+import 'package:financas/pages/mainMenu.dart';
 import 'package:flutter/material.dart';
 
-import 'loginPage.dart';
-
-class MainMenu extends StatefulWidget {
-  const MainMenu({Key? key}) : super(key: key);
+class RelatorioPage extends StatefulWidget {
+  const RelatorioPage({Key? key}) : super(key: key);
 
   @override
-  State<MainMenu> createState() => _MainMenuState();
+  State<RelatorioPage> createState() => _RelatorioPageState();
 }
 
-class _MainMenuState extends State<MainMenu> {
+class _RelatorioPageState extends State<RelatorioPage> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -75,7 +69,7 @@ class _MainMenuState extends State<MainMenu> {
                             ],
                           ),
                           const Text(
-                            'BEM VINDO',
+                            'RELATÓRIO GERAL',
                             style: TextStyle(
                                 color: Colors.white,
                                 fontFamily: 'Arial',
@@ -86,12 +80,7 @@ class _MainMenuState extends State<MainMenu> {
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
                               ElevatedButton(
-                                onPressed: () {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) => GerirAlunos()));
-                                },
+                                onPressed: () {},
                                 style: ButtonStyle(
                                   backgroundColor:
                                       MaterialStateProperty.all<Color>(
@@ -102,16 +91,20 @@ class _MainMenuState extends State<MainMenu> {
                                   height: 110,
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Image.asset(
-                                        'assets/app/alunos.png',
-                                        width: 56,
+                                    children: const [
+                                      Text(
+                                        'Mensalidade',
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontFamily: 'Arial',
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold),
                                       ),
                                       SizedBox(
                                         height: 5,
                                       ),
                                       Text(
-                                        'CADASTRAR',
+                                        'R\$ 1.000,00',
                                         style: TextStyle(
                                             fontWeight: FontWeight.bold),
                                       ),
@@ -120,13 +113,7 @@ class _MainMenuState extends State<MainMenu> {
                                 ),
                               ),
                               ElevatedButton(
-                                onPressed: () {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              Mensalidades()));
-                                },
+                                onPressed: () {},
                                 style: ButtonStyle(
                                   backgroundColor:
                                       MaterialStateProperty.all<Color>(
@@ -137,16 +124,20 @@ class _MainMenuState extends State<MainMenu> {
                                   height: 110,
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Image.asset(
-                                        'assets/app/mensalidades.png',
-                                        width: 56,
+                                    children: const [
+                                      Text(
+                                        'Diárias',
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontFamily: 'Arial',
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold),
                                       ),
                                       SizedBox(
                                         height: 5,
                                       ),
                                       Text(
-                                        'Mensalidades',
+                                        'R\$ 1.000,00',
                                         style: TextStyle(
                                             fontWeight: FontWeight.bold),
                                       ),
@@ -160,12 +151,7 @@ class _MainMenuState extends State<MainMenu> {
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
                               ElevatedButton(
-                                onPressed: () {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) => DiariasPage()));
-                                },
+                                onPressed: () {},
                                 style: ButtonStyle(
                                   backgroundColor:
                                       MaterialStateProperty.all<Color>(
@@ -176,16 +162,20 @@ class _MainMenuState extends State<MainMenu> {
                                   height: 110,
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Image.asset(
-                                        'assets/app/diarias.png',
-                                        width: 56,
+                                    children: const [
+                                      Text(
+                                        'Despesas',
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontFamily: 'Arial',
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold),
                                       ),
                                       SizedBox(
                                         height: 5,
                                       ),
                                       Text(
-                                        'Diárias',
+                                        'R\$ 1.000,00',
                                         style: TextStyle(
                                             fontWeight: FontWeight.bold),
                                       ),
@@ -194,13 +184,7 @@ class _MainMenuState extends State<MainMenu> {
                                 ),
                               ),
                               ElevatedButton(
-                                onPressed: () {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              DespesasPage()));
-                                },
+                                onPressed: () {},
                                 style: ButtonStyle(
                                   backgroundColor:
                                       MaterialStateProperty.all<Color>(
@@ -211,16 +195,20 @@ class _MainMenuState extends State<MainMenu> {
                                   height: 110,
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Image.asset(
-                                        'assets/app/despesas.png',
-                                        width: 56,
+                                    children: const [
+                                      Text(
+                                        'Líquido',
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontFamily: 'Arial',
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold),
                                       ),
                                       SizedBox(
                                         height: 5,
                                       ),
                                       Text(
-                                        'Despesas',
+                                        'R\$ 1.000,00',
                                         style: TextStyle(
                                             fontWeight: FontWeight.bold),
                                       ),
@@ -230,32 +218,6 @@ class _MainMenuState extends State<MainMenu> {
                               ),
                             ],
                           ),
-                          ElevatedButton(
-                              onPressed: () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => RelatorioPage()));
-                              },
-                              style: ButtonStyle(
-                                backgroundColor:
-                                    MaterialStateProperty.all<Color>(
-                                        Color.fromRGBO(61, 61, 61, 1)),
-                              ),
-                              child: SizedBox(
-                                width: 261,
-                                height: 43,
-                                child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Image.asset('assets/app/relatorio.png'),
-                                      Text(
-                                        'Relatório Geral',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ]),
-                              )),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
@@ -269,7 +231,7 @@ class _MainMenuState extends State<MainMenu> {
                                         context,
                                         MaterialPageRoute(
                                             builder: ((context) =>
-                                                const LoginPage())));
+                                                const MainMenu())));
                                   });
                                 },
                                 style: ButtonStyle(

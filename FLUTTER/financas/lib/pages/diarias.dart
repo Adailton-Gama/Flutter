@@ -1,13 +1,14 @@
 import 'package:financas/pages/mainMenu.dart';
 import 'package:flutter/material.dart';
 
-class GerirAlunos extends StatefulWidget {
-  const GerirAlunos({Key? key}) : super(key: key);
+class DiariasPage extends StatefulWidget {
+  const DiariasPage({Key? key}) : super(key: key);
+
   @override
-  State<GerirAlunos> createState() => _GerirAlunosState();
+  State<DiariasPage> createState() => _DiariasPageState();
 }
 
-class _GerirAlunosState extends State<GerirAlunos> {
+class _DiariasPageState extends State<DiariasPage> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -28,7 +29,7 @@ class _GerirAlunosState extends State<GerirAlunos> {
                       SizedBox(
                         width: MediaQuery.of(context).size.width * 0.7,
                         child: const Text(
-                          'GESTÃO DE ALUNOS',
+                          'DIÁRIAS',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontFamily: 'Arial',
@@ -50,7 +51,7 @@ class _GerirAlunosState extends State<GerirAlunos> {
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         const Text(
-                          'ALUNOS\n CADASTRADOS',
+                          'CONTROLE DE \n PAGAMENTOS',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                               color: Colors.white,
@@ -85,7 +86,7 @@ class _GerirAlunosState extends State<GerirAlunos> {
                                       Row(
                                         children: const [
                                           Text(
-                                            'Horário: Manhã - Plano: Mensal',
+                                            'Data: 11/06/2022',
                                             textAlign: TextAlign.start,
                                             style: TextStyle(
                                                 color: Colors.white,
@@ -108,10 +109,10 @@ class _GerirAlunosState extends State<GerirAlunos> {
                                       Row(
                                         children: const [
                                           Text(
-                                            '(74)99108-3075',
+                                            'R\$ 40,00 - Status: Pago',
                                             textAlign: TextAlign.start,
                                             style: TextStyle(
-                                                color: Colors.white,
+                                                color: Colors.green,
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.w300),
                                           ),
@@ -137,7 +138,22 @@ class _GerirAlunosState extends State<GerirAlunos> {
                                     fontSize: 10),
                               ),
                               Text(
-                                'Valor Total Estimado: R\$ 600,00',
+                                'Valor Total: R\$ 600,00',
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w300,
+                                    fontSize: 10),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: EdgeInsets.only(right: 10, bottom: 10),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: const [
+                              Text(
+                                'Valor Pago: R\$ 560,00',
                                 style: TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.w300,
@@ -149,7 +165,7 @@ class _GerirAlunosState extends State<GerirAlunos> {
                         Container(
                           padding: EdgeInsets.only(right: 10, left: 10),
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment: MainAxisAlignment.end,
                             children: [
                               ElevatedButton(
                                 onPressed: () {
@@ -174,37 +190,6 @@ class _GerirAlunosState extends State<GerirAlunos> {
                                     children: const [
                                       Icon(Icons.arrow_back),
                                       Text('VOLTAR')
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: 10),
-                              ElevatedButton(
-                                onPressed: () => AddAluno(),
-                                style: ButtonStyle(
-                                  backgroundColor:
-                                      MaterialStateProperty.all<Color>(
-                                          Color.fromRGBO(61, 61, 61, 1)),
-                                ),
-                                child: SizedBox(
-                                  width: 50,
-                                  height: 67,
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Image.asset(
-                                        'assets/app/alunos.png',
-                                        width: 34,
-                                        height: 34,
-                                      ),
-                                      SizedBox(
-                                        height: 5,
-                                      ),
-                                      Text(
-                                        'ADD',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold),
-                                      ),
                                     ],
                                   ),
                                 ),
@@ -236,7 +221,7 @@ class _GerirAlunosState extends State<GerirAlunos> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text('DADOS DO ALUNO',
+                            Text('DADOS DO PAGAMENTO',
                                 style: TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold)),
@@ -290,28 +275,7 @@ class _GerirAlunosState extends State<GerirAlunos> {
                                 decoration: InputDecoration(
                                   contentPadding:
                                       EdgeInsets.fromLTRB(12, 0, 12, 0),
-                                  hintText: 'PLANO: ',
-                                  hintStyle: TextStyle(color: Colors.white),
-                                  enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                  focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                ),
-                              ),
-                            ),
-                            Container(
-                              padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
-                              height: 30,
-                              child: TextField(
-                                style: TextStyle(color: Colors.white),
-                                decoration: InputDecoration(
-                                  contentPadding:
-                                      EdgeInsets.fromLTRB(12, 0, 12, 0),
-                                  hintText: 'DIA DE PAGAMENTO: ',
+                                  hintText: 'DATA DE PAGAMENTO: ',
                                   hintStyle: TextStyle(color: Colors.white),
                                   enabledBorder: OutlineInputBorder(
                                       borderSide: BorderSide(
@@ -333,27 +297,6 @@ class _GerirAlunosState extends State<GerirAlunos> {
                                   contentPadding:
                                       EdgeInsets.fromLTRB(12, 0, 12, 0),
                                   hintText: 'VALOR: ',
-                                  hintStyle: TextStyle(color: Colors.white),
-                                  enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                  focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                ),
-                              ),
-                            ),
-                            Container(
-                              padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
-                              height: 30,
-                              child: TextField(
-                                style: TextStyle(color: Colors.white),
-                                decoration: InputDecoration(
-                                  contentPadding:
-                                      EdgeInsets.fromLTRB(12, 0, 12, 0),
-                                  hintText: 'TELEFONE: ',
                                   hintStyle: TextStyle(color: Colors.white),
                                   enabledBorder: OutlineInputBorder(
                                       borderSide: BorderSide(
@@ -407,226 +350,7 @@ class _GerirAlunosState extends State<GerirAlunos> {
                                   ),
                                   child: Container(
                                     child: Row(
-                                      children: const [Text('EDITAR')],
-                                    ),
-                                  ),
-                                ),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    ScaffoldMessenger.of(context)
-                                        .clearSnackBars();
-                                    Future.delayed(Duration(milliseconds: 300))
-                                        .then((value) {
-                                      Navigator.pop(context);
-                                    });
-                                  },
-                                  style: ButtonStyle(
-                                    backgroundColor:
-                                        MaterialStateProperty.all<Color>(
-                                            Colors.black),
-                                  ),
-                                  child: Container(
-                                    child: Row(
-                                      children: const [Text('VOLTAR')],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            )
-                          ],
-                        )),
-                  ],
-                ),
-              ),
-            ));
-  }
-
-  void AddAluno() {
-    showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-              backgroundColor: Color.fromRGBO(61, 61, 61, 1),
-              content: Flexible(
-                child: ListView(
-                  shrinkWrap: true,
-                  children: [
-                    Container(
-                        color: Color.fromRGBO(61, 61, 61, 1),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text('DADOS DO ALUNO',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold)),
-                            Container(
-                              padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
-                              height: 30,
-                              child: TextField(
-                                style: TextStyle(color: Colors.white),
-                                decoration: InputDecoration(
-                                  contentPadding:
-                                      EdgeInsets.fromLTRB(12, 0, 12, 0),
-                                  hintText: 'ID: ',
-                                  hintStyle: TextStyle(color: Colors.white),
-                                  enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                  focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                ),
-                              ),
-                            ),
-                            Container(
-                              padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
-                              height: 30,
-                              child: TextField(
-                                style: TextStyle(color: Colors.white),
-                                decoration: InputDecoration(
-                                  contentPadding:
-                                      EdgeInsets.fromLTRB(12, 0, 12, 0),
-                                  hintText: 'NOME: ',
-                                  hintStyle: TextStyle(color: Colors.white),
-                                  enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                  focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                ),
-                              ),
-                            ),
-                            Container(
-                              padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
-                              height: 30,
-                              child: TextField(
-                                style: TextStyle(color: Colors.white),
-                                decoration: InputDecoration(
-                                  contentPadding:
-                                      EdgeInsets.fromLTRB(12, 0, 12, 0),
-                                  hintText: 'PLANO: ',
-                                  hintStyle: TextStyle(color: Colors.white),
-                                  enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                  focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                ),
-                              ),
-                            ),
-                            Container(
-                              padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
-                              height: 30,
-                              child: TextField(
-                                style: TextStyle(color: Colors.white),
-                                decoration: InputDecoration(
-                                  contentPadding:
-                                      EdgeInsets.fromLTRB(12, 0, 12, 0),
-                                  hintText: 'DIA DE PAGAMENTO: ',
-                                  hintStyle: TextStyle(color: Colors.white),
-                                  enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                  focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                ),
-                              ),
-                            ),
-                            Container(
-                              padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
-                              height: 30,
-                              child: TextField(
-                                style: TextStyle(color: Colors.white),
-                                decoration: InputDecoration(
-                                  contentPadding:
-                                      EdgeInsets.fromLTRB(12, 0, 12, 0),
-                                  hintText: 'VALOR: ',
-                                  hintStyle: TextStyle(color: Colors.white),
-                                  enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                  focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                ),
-                              ),
-                            ),
-                            Container(
-                              padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
-                              height: 30,
-                              child: TextField(
-                                style: TextStyle(color: Colors.white),
-                                decoration: InputDecoration(
-                                  contentPadding:
-                                      EdgeInsets.fromLTRB(12, 0, 12, 0),
-                                  hintText: 'TELEFONE: ',
-                                  hintStyle: TextStyle(color: Colors.white),
-                                  enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                  focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                ),
-                              ),
-                            ),
-                            Container(
-                              padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
-                              margin: EdgeInsets.only(bottom: 20),
-                              height: 30,
-                              child: TextField(
-                                style: TextStyle(color: Colors.white),
-                                decoration: InputDecoration(
-                                  contentPadding:
-                                      EdgeInsets.fromLTRB(12, 0, 12, 0),
-                                  hintText: 'OBSERVAÇÕES: ',
-                                  hintStyle: TextStyle(color: Colors.white),
-                                  enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                  focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                ),
-                              ),
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                ElevatedButton(
-                                  onPressed: () {
-                                    ScaffoldMessenger.of(context)
-                                        .clearSnackBars();
-                                    Future.delayed(Duration(milliseconds: 300))
-                                        .then((value) {
-                                      Navigator.pop(context);
-                                    });
-                                  },
-                                  style: ButtonStyle(
-                                    backgroundColor:
-                                        MaterialStateProperty.all<Color>(
-                                            Colors.black),
-                                  ),
-                                  child: Container(
-                                    child: Row(
-                                      children: const [Text('CADASTRAR')],
+                                      children: const [Text('CONFIRMAR')],
                                     ),
                                   ),
                                 ),

@@ -1,10 +1,5 @@
-import 'package:financas/main.dart';
 import 'package:financas/pages/loginPage.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter/src/foundation/key.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter/material.dart';
-import 'dart:ui';
 
 class Splash extends StatefulWidget {
   const Splash({Key? key}) : super(key: key);
@@ -20,10 +15,11 @@ class _SplashState extends State<Splash> {
     super.initState();
     Future.delayed(Duration(seconds: 5)).then((value){
     Navigator.push(
-        context, new MaterialPageRoute(builder: ((context) => LoginPage())));
+        context, MaterialPageRoute(builder: ((context) => LoginPage())));
 
     });
   }
+  @override
   Widget build(BuildContext context) {
     return Container(
         alignment: Alignment.center,
