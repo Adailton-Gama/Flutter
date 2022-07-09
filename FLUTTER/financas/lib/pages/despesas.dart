@@ -1,6 +1,14 @@
+import 'dart:math';
+
 import 'package:financas/pages/mainMenu.dart';
+import 'package:financas/repository/repository.dart';
+import 'package:financas/widgets/itemDespesa.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+import 'package:vibration/vibration.dart';
+
+import '../models/alunos.dart';
 
 class DespesasPage extends StatefulWidget {
   const DespesasPage({Key? key}) : super(key: key);
@@ -10,8 +18,29 @@ class DespesasPage extends StatefulWidget {
 }
 
 class _DespesasPageState extends State<DespesasPage> {
-  DateTime? _datetime;
-  DateTime? _datepag;
+  DespesasRepository despesasRepository = DespesasRepository();
+  final MaskTextInputFormatter datemask =
+      MaskTextInputFormatter(mask: "##/##/####");
+  List<Despesas> despesas = [];
+  int total = 0;
+  int pagos = 0;
+  var count;
+  @override
+  void initState() {
+    super.initState();
+    despesasRepository.getDespesas().then((value) {
+      setState(() {
+        despesas = value;
+        count = despesas.length;
+        for (var despesa in despesas) {
+          total += despesa.valor;
+          if (despesa.pago == true) {
+            pagos += despesa.valor;
+          }
+        }
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +61,7 @@ class _DespesasPageState extends State<DespesasPage> {
                     SizedBox(
                       width: MediaQuery.of(context).size.width * 0.7,
                       child: const Text(
-                        'MENSALIDADES',
+                        'DESPESAS',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontFamily: 'Arial',
@@ -54,7 +83,7 @@ class _DespesasPageState extends State<DespesasPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       const Text(
-                        'CONTROLE DE \n MENSALIDADES',
+                        'CONTROLE DE \n DESPESAS',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             color: Colors.white,
@@ -74,57 +103,12 @@ class _DespesasPageState extends State<DespesasPage> {
                             child: ListView(
                           shrinkWrap: true,
                           children: [
-                            ElevatedButton(
-                              style: ButtonStyle(
-                                backgroundColor: MaterialStateProperty.all(
-                                    const Color.fromRGBO(61, 61, 61, 1)),
-                              ),
-                              onPressed: () => editAluno(),
-                              child: Container(
-                                alignment: Alignment.topLeft,
-                                padding: const EdgeInsets.all(5),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: const [
-                                        Text(
-                                          'Data de Vencimento: 22/06/2022',
-                                          textAlign: TextAlign.start,
-                                          style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w300),
-                                        ),
-                                      ],
-                                    ),
-                                    Row(
-                                      children: const [
-                                        Text(
-                                          'INTERNET',
-                                          style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                      ],
-                                    ),
-                                    Row(
-                                      children: const [
-                                        Text(
-                                          'R\$ 40,00 - Status: Pendente',
-                                          textAlign: TextAlign.start,
-                                          style: TextStyle(
-                                              color: Colors.green,
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w300),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
+                            //Para cada despesa
+                            for (Despesas despesa in despesas)
+                              ItemDespesa(
+                                  despesa: despesa,
+                                  editDespesa: editDespesa,
+                                  onDelete: onDelete),
                           ],
                         )),
                       ),
@@ -132,16 +116,16 @@ class _DespesasPageState extends State<DespesasPage> {
                         padding: const EdgeInsets.all(10),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: const [
+                          children: [
                             Text(
-                              'Total de Alunos: 15',
+                              'Total de Contas: $count',
                               style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w300,
                                   fontSize: 10),
                             ),
                             Text(
-                              'Valor Total: R\$ 600,00',
+                              'Valor Total: R\$ $total',
                               style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w300,
@@ -154,9 +138,9 @@ class _DespesasPageState extends State<DespesasPage> {
                         padding: const EdgeInsets.only(right: 10, bottom: 10),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.end,
-                          children: const [
+                          children: [
                             Text(
-                              'Valor Pago: R\$ 560,00',
+                              'Valor Pago: R\$ $pagos',
                               style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w300,
@@ -168,7 +152,7 @@ class _DespesasPageState extends State<DespesasPage> {
                       Container(
                         padding: const EdgeInsets.only(right: 10, left: 10),
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             ElevatedButton(
                               onPressed: () {
@@ -197,6 +181,27 @@ class _DespesasPageState extends State<DespesasPage> {
                                 ),
                               ),
                             ),
+                            ElevatedButton(
+                              onPressed: () => addDespesa(),
+                              style: ButtonStyle(
+                                backgroundColor:
+                                    MaterialStateProperty.all<Color>(
+                                        const Color.fromRGBO(61, 61, 61, 1)),
+                              ),
+                              child: Container(
+                                padding: EdgeInsets.only(top: 5, bottom: 5),
+                                child: Column(
+                                  children: [
+                                    Image.asset(
+                                      'assets/app/despesas.png',
+                                      height: 34,
+                                      width: 34,
+                                    ),
+                                    Text('ADD')
+                                  ],
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -209,255 +214,509 @@ class _DespesasPageState extends State<DespesasPage> {
     );
   }
 
-  void editAluno() {
+  void editDespesa(Despesas despesa) {
+    final TextEditingController id = TextEditingController();
+    final TextEditingController nome = TextEditingController();
+    final TextEditingController valor = TextEditingController();
+    final TextEditingController dVencimento = TextEditingController();
+    final TextEditingController dPagamento = TextEditingController();
+    final TextEditingController observacoes = TextEditingController();
+    setState(() {
+      id.text = despesa.id.toString();
+      nome.text = despesa.nome;
+      valor.text = despesa.valor.toString();
+      dVencimento.text = despesa.dVencimento;
+      dPagamento.text = despesa.dPagamento;
+      observacoes.text = despesa.observacoes;
+    });
     showDialog(
         context: context,
         builder: (context) => AlertDialog(
               backgroundColor: const Color.fromRGBO(61, 61, 61, 1),
-              content: Flexible(
-                child: ListView(
-                  shrinkWrap: true,
-                  children: [
-                    Container(
-                        color: const Color.fromRGBO(61, 61, 61, 1),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Text('DADOS DO PAGAMENTO',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold)),
-                            Container(
-                              padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
-                              height: 30,
-                              child: const TextField(
-                                style: TextStyle(color: Colors.white),
-                                decoration: InputDecoration(
-                                  contentPadding:
-                                      EdgeInsets.fromLTRB(12, 0, 12, 0),
-                                  hintText: 'ID: ',
-                                  hintStyle: TextStyle(color: Colors.white),
-                                  enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                  focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                ),
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
-                              height: 30,
-                              child: const TextField(
-                                style: TextStyle(color: Colors.white),
-                                decoration: InputDecoration(
-                                  contentPadding:
-                                      EdgeInsets.fromLTRB(12, 0, 12, 0),
-                                  hintText: 'NOME: ',
-                                  hintStyle: TextStyle(color: Colors.white),
-                                  enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                  focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                ),
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
-                              height: 30,
-                              child: const TextField(
-                                style: TextStyle(color: Colors.white),
-                                decoration: InputDecoration(
-                                  contentPadding:
-                                      EdgeInsets.fromLTRB(12, 0, 12, 0),
-                                  hintText: 'VALOR: ',
-                                  hintStyle: TextStyle(color: Colors.white),
-                                  enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                  focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                ),
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
-                              height: 30,
-                              width: 300,
-                              child: FlatButton(
-                                textColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  side: BorderSide(
-                                      color:
-                                          const Color.fromRGBO(91, 91, 91, 1),
-                                      width: 1,
-                                      style: BorderStyle.solid),
-                                ),
-                                onPressed: () => dateVenc(),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    Text(_datetime == null
-                                        ? 'Data de Vencimento:'
-                                        : DateFormat('dd/MM/yyyy')
-                                            .format(_datetime!)),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            Container(
-                              padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
-                              height: 30,
-                              width: 300,
-                              child: FlatButton(
-                                textColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  side: BorderSide(
-                                      color: Color.fromRGBO(91, 91, 91, 1),
-                                      width: 1,
-                                      style: BorderStyle.solid),
-                                ),
-                                onPressed: () => datePag(),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    Text(_datepag == null
-                                        ? 'Data de Pagamento:'
-                                        : DateFormat('dd/MM/yyyy')
-                                            .format(_datepag!)),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            Container(
-                              padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
-                              height: 30,
-                              child: TextField(
-                                style: TextStyle(color: Colors.white),
-                                decoration: InputDecoration(
-                                  contentPadding:
-                                      EdgeInsets.fromLTRB(12, 0, 12, 0),
-                                  hintText: 'STATUS: ',
-                                  hintStyle: TextStyle(color: Colors.white),
-                                  enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                  focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                ),
-                              ),
-                            ),
-                            Container(
-                              padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
-                              margin: EdgeInsets.only(bottom: 20),
-                              height: 30,
-                              child: TextField(
-                                style: TextStyle(color: Colors.white),
-                                decoration: InputDecoration(
-                                  contentPadding:
-                                      EdgeInsets.fromLTRB(12, 0, 12, 0),
-                                  hintText: 'OBSERVAÇÕES: ',
-                                  hintStyle: TextStyle(color: Colors.white),
-                                  enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                  focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                ),
-                              ),
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              content: Container(
+                  color: const Color.fromRGBO(61, 61, 61, 1),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('DADOS DO PAGAMENTO',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold)),
+                      Container(
+                        padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
+                        height: 30,
+                        child: const TextField(
+                          style: TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            contentPadding: EdgeInsets.fromLTRB(12, 0, 12, 0),
+                            hintText: 'ID: ',
+                            hintStyle: TextStyle(color: Colors.white),
+                            enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Color.fromRGBO(91, 91, 91, 1),
+                                    width: 1)),
+                            focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Color.fromRGBO(91, 91, 91, 1),
+                                    width: 1)),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
+                        height: 30,
+                        child: const TextField(
+                          style: TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            contentPadding: EdgeInsets.fromLTRB(12, 0, 12, 0),
+                            hintText: 'NOME: ',
+                            hintStyle: TextStyle(color: Colors.white),
+                            enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Color.fromRGBO(91, 91, 91, 1),
+                                    width: 1)),
+                            focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Color.fromRGBO(91, 91, 91, 1),
+                                    width: 1)),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
+                        height: 30,
+                        child: const TextField(
+                          style: TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            contentPadding: EdgeInsets.fromLTRB(12, 0, 12, 0),
+                            hintText: 'VALOR: ',
+                            hintStyle: TextStyle(color: Colors.white),
+                            enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Color.fromRGBO(91, 91, 91, 1),
+                                    width: 1)),
+                            focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Color.fromRGBO(91, 91, 91, 1),
+                                    width: 1)),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
+                        height: 35,
+                        child: TextField(
+                          inputFormatters: [datemask],
+                          keyboardType: TextInputType.number,
+                          style: TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            contentPadding: EdgeInsets.fromLTRB(12, 0, 12, 0),
+                            hintText: 'Data de Vencimento: ',
+                            hintStyle: TextStyle(color: Colors.white),
+                            enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Color.fromRGBO(91, 91, 91, 1),
+                                    width: 1)),
+                            focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Color.fromRGBO(91, 91, 91, 1),
+                                    width: 1)),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
+                        height: 35,
+                        child: TextField(
+                          inputFormatters: [datemask],
+                          keyboardType: TextInputType.number,
+                          style: TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            contentPadding: EdgeInsets.fromLTRB(12, 0, 12, 0),
+                            hintText: 'Data de Pagamento: ',
+                            hintStyle: TextStyle(color: Colors.white),
+                            enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Color.fromRGBO(91, 91, 91, 1),
+                                    width: 1)),
+                            focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Color.fromRGBO(91, 91, 91, 1),
+                                    width: 1)),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
+                        height: 30,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              if (despesa.pago == true) {
+                                despesa.pago = false;
+                                pagos -= despesa.valor;
+                                despesasRepository.saveDespesasList(despesas);
+                              } else {
+                                despesa.pago = true;
+                                pagos += despesa.valor;
+                                despesasRepository.saveDespesasList(despesas);
+                              }
+                            });
+                          },
+                          style: ButtonStyle(
+                            backgroundColor: despesa.pago
+                                ? MaterialStateProperty.all<Color>(Colors.green)
+                                : MaterialStateProperty.all<Color>(Colors.red),
+                          ),
+                          child: Container(
+                            child: Row(
                               children: [
-                                ElevatedButton(
-                                  onPressed: () {
-                                    ScaffoldMessenger.of(context)
-                                        .clearSnackBars();
-                                    Future.delayed(Duration(milliseconds: 300))
-                                        .then((value) {
-                                      Navigator.pop(context);
-                                    });
-                                  },
-                                  style: ButtonStyle(
-                                    backgroundColor:
-                                        MaterialStateProperty.all<Color>(
-                                            Colors.black),
-                                  ),
-                                  child: Container(
-                                    child: Row(
-                                      children: const [Text('CONFIRMAR')],
-                                    ),
-                                  ),
-                                ),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    ScaffoldMessenger.of(context)
-                                        .clearSnackBars();
-                                    Future.delayed(Duration(milliseconds: 300))
-                                        .then((value) {
-                                      Navigator.pop(context);
-                                    });
-                                  },
-                                  style: ButtonStyle(
-                                    backgroundColor:
-                                        MaterialStateProperty.all<Color>(
-                                            Colors.black),
-                                  ),
-                                  child: Container(
-                                    child: Row(
-                                      children: const [Text('VOLTAR')],
-                                    ),
-                                  ),
-                                ),
+                                Text(despesa.pago ? 'PAGO' : 'PENDENTE')
                               ],
-                            )
-                          ],
-                        )),
-                  ],
-                ),
-              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
+                        margin: EdgeInsets.only(bottom: 20),
+                        height: 30,
+                        child: TextField(
+                          style: TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            contentPadding: EdgeInsets.fromLTRB(12, 0, 12, 0),
+                            hintText: 'OBSERVAÇÕES: ',
+                            hintStyle: TextStyle(color: Colors.white),
+                            enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Color.fromRGBO(91, 91, 91, 1),
+                                    width: 1)),
+                            focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Color.fromRGBO(91, 91, 91, 1),
+                                    width: 1)),
+                          ),
+                        ),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              ScaffoldMessenger.of(context).clearSnackBars();
+                              Future.delayed(Duration(milliseconds: 300))
+                                  .then((value) {
+                                Navigator.pop(context);
+                              });
+                            },
+                            style: ButtonStyle(
+                              backgroundColor: MaterialStateProperty.all<Color>(
+                                  Colors.black),
+                            ),
+                            child: Container(
+                              child: Row(
+                                children: const [Text('CONFIRMAR')],
+                              ),
+                            ),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              ScaffoldMessenger.of(context).clearSnackBars();
+                              Future.delayed(Duration(milliseconds: 300))
+                                  .then((value) {
+                                Navigator.pop(context);
+                              });
+                            },
+                            style: ButtonStyle(
+                              backgroundColor: MaterialStateProperty.all<Color>(
+                                  Colors.black),
+                            ),
+                            child: Container(
+                              child: Row(
+                                children: const [Text('VOLTAR')],
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                    ],
+                  )),
             ));
   }
 
-  void dateVenc() {
-    showDatePicker(
-            context: context,
-            initialDate: DateTime.now(),
-            firstDate: DateTime(2000),
-            lastDate: DateTime(2030))
-        .then((date) {
-      setState(() {
-        _datetime = date!;
-      });
+  void addDespesa() {
+    var rdnid = new Random().nextInt(1000);
+    final TextEditingController id = TextEditingController();
+    final TextEditingController nome = TextEditingController();
+    final TextEditingController valor = TextEditingController();
+    final TextEditingController dVencimento = TextEditingController();
+    final TextEditingController dPagamento = TextEditingController();
+    final TextEditingController observacoes = TextEditingController();
+    setState(() {
+      id.text = rdnid.toString();
+      showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+                backgroundColor: const Color.fromRGBO(61, 61, 61, 1),
+                content: Container(
+                    color: const Color.fromRGBO(61, 61, 61, 1),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text('DADOS DO PAGAMENTO',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold)),
+                        Container(
+                          padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
+                          height: 30,
+                          child: TextField(
+                            controller: id,
+                            style: TextStyle(color: Colors.white),
+                            decoration: InputDecoration(
+                              contentPadding: EdgeInsets.fromLTRB(12, 0, 12, 0),
+                              hintText: 'ID: ',
+                              hintStyle: TextStyle(color: Colors.white),
+                              enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: Color.fromRGBO(91, 91, 91, 1),
+                                      width: 1)),
+                              focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: Color.fromRGBO(91, 91, 91, 1),
+                                      width: 1)),
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
+                          height: 30,
+                          child: TextField(
+                            controller: nome,
+                            style: TextStyle(color: Colors.white),
+                            decoration: InputDecoration(
+                              contentPadding: EdgeInsets.fromLTRB(12, 0, 12, 0),
+                              hintText: 'NOME: ',
+                              hintStyle: TextStyle(color: Colors.white),
+                              enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: Color.fromRGBO(91, 91, 91, 1),
+                                      width: 1)),
+                              focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: Color.fromRGBO(91, 91, 91, 1),
+                                      width: 1)),
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
+                          height: 30,
+                          child: TextField(
+                            controller: valor,
+                            style: TextStyle(color: Colors.white),
+                            decoration: InputDecoration(
+                              contentPadding: EdgeInsets.fromLTRB(12, 0, 12, 0),
+                              hintText: 'VALOR: ',
+                              hintStyle: TextStyle(color: Colors.white),
+                              enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: Color.fromRGBO(91, 91, 91, 1),
+                                      width: 1)),
+                              focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: Color.fromRGBO(91, 91, 91, 1),
+                                      width: 1)),
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
+                          height: 35,
+                          child: TextField(
+                            controller: dVencimento,
+                            inputFormatters: [datemask],
+                            keyboardType: TextInputType.number,
+                            style: TextStyle(color: Colors.white),
+                            decoration: InputDecoration(
+                              contentPadding: EdgeInsets.fromLTRB(12, 0, 12, 0),
+                              hintText: 'Data de Vencimento: ',
+                              hintStyle: TextStyle(color: Colors.white),
+                              enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: Color.fromRGBO(91, 91, 91, 1),
+                                      width: 1)),
+                              focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: Color.fromRGBO(91, 91, 91, 1),
+                                      width: 1)),
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
+                          height: 35,
+                          child: TextField(
+                            controller: dPagamento,
+                            inputFormatters: [datemask],
+                            keyboardType: TextInputType.number,
+                            style: TextStyle(color: Colors.white),
+                            decoration: InputDecoration(
+                              contentPadding: EdgeInsets.fromLTRB(12, 0, 12, 0),
+                              hintText: 'Data de Pagamento: ',
+                              hintStyle: TextStyle(color: Colors.white),
+                              enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: Color.fromRGBO(91, 91, 91, 1),
+                                      width: 1)),
+                              focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: Color.fromRGBO(91, 91, 91, 1),
+                                      width: 1)),
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
+                          margin: EdgeInsets.only(bottom: 20),
+                          height: 30,
+                          child: TextField(
+                            controller: observacoes,
+                            style: TextStyle(color: Colors.white),
+                            decoration: InputDecoration(
+                              contentPadding: EdgeInsets.fromLTRB(12, 0, 12, 0),
+                              hintText: 'OBSERVAÇÕES: ',
+                              hintStyle: TextStyle(color: Colors.white),
+                              enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: Color.fromRGBO(91, 91, 91, 1),
+                                      width: 1)),
+                              focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: Color.fromRGBO(91, 91, 91, 1),
+                                      width: 1)),
+                            ),
+                          ),
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  if (nome.text == '' ||
+                                      dVencimento.text == '' ||
+                                      valor.text == '') {
+                                    Vibration.vibrate();
+                                    ScaffoldMessenger.of(context)
+                                        .clearSnackBars();
+                                    ScaffoldMessenger.of(context)
+                                        .showSnackBar(const SnackBar(
+                                      content: Text(
+                                        'Favor preencher os dados dos alunos!',
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      duration: Duration(seconds: 3),
+                                      backgroundColor:
+                                          Color.fromRGBO(30, 30, 30, 1),
+                                    ));
+                                  } else {
+                                    Despesas newDespesa = Despesas(
+                                        id: int.parse(id.text),
+                                        nome: nome.text,
+                                        valor: int.parse(valor.text),
+                                        dVencimento: dVencimento.text,
+                                        dPagamento: dPagamento.text,
+                                        pago: false,
+                                        observacoes: observacoes.text);
+                                    despesas.add(newDespesa);
+                                    count = despesas.length;
+                                    pagos = 0;
+                                    total = 0;
+                                    for (Despesas despesa in despesas) {
+                                      total += despesa.valor;
+                                      if (despesa.pago == true) {
+                                        pagos += despesa.valor;
+                                      }
+                                    }
+                                    despesasRepository
+                                        .saveDespesasList(despesas);
+                                  }
+                                });
+                                ScaffoldMessenger.of(context).clearSnackBars();
+                                Future.delayed(Duration(milliseconds: 300))
+                                    .then((value) {
+                                  Navigator.pop(context);
+                                });
+                              },
+                              style: ButtonStyle(
+                                backgroundColor:
+                                    MaterialStateProperty.all<Color>(
+                                        Colors.black),
+                              ),
+                              child: Container(
+                                child: Row(
+                                  children: const [Text('ADICIONAR')],
+                                ),
+                              ),
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                ScaffoldMessenger.of(context).clearSnackBars();
+                                Future.delayed(Duration(milliseconds: 300))
+                                    .then((value) {
+                                  Navigator.pop(context);
+                                });
+                              },
+                              style: ButtonStyle(
+                                backgroundColor:
+                                    MaterialStateProperty.all<Color>(
+                                        Colors.black),
+                              ),
+                              child: Container(
+                                child: Row(
+                                  children: const [Text('VOLTAR')],
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      ],
+                    )),
+              ));
     });
   }
 
-  void datePag() {
+  void onDelete(Despesas despesa) {
+    Despesas offDelete = despesa;
+    int offDeletePos = despesas.indexOf(despesa);
+    print(despesa.nome);
     setState(() {
-      showDatePicker(
-              context: context,
-              initialDate: DateTime.now(),
-              firstDate: DateTime(2000),
-              lastDate: DateTime(2050))
-          .then((value) {
-        _datepag = value!;
-      });
+      despesas.remove(despesa);
+      count = despesas.length;
+      pagos -= despesa.valor;
+      total -= offDelete.valor;
+      despesasRepository.saveDespesasList(despesas);
     });
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('O aluno(a): ${despesa.nome} foi removida com sucesso!',
+            style: const TextStyle(color: Colors.white)),
+        action: SnackBarAction(
+          label: 'Desfazer',
+          onPressed: () {
+            setState(() {
+              despesas.insert(offDeletePos, offDelete);
+              pagos += offDelete.valor;
+              total += offDelete.valor;
+              count = despesas.length;
+              despesasRepository.saveDespesasList(despesas);
+            });
+          },
+        ),
+        duration: Duration(seconds: 5),
+      ),
+    );
   }
 }

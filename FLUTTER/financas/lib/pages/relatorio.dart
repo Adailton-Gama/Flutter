@@ -1,6 +1,9 @@
 import 'package:financas/pages/mainMenu.dart';
 import 'package:flutter/material.dart';
 
+import '../models/alunos.dart';
+import '../repository/repository.dart';
+
 class RelatorioPage extends StatefulWidget {
   const RelatorioPage({Key? key}) : super(key: key);
 
@@ -9,6 +12,55 @@ class RelatorioPage extends StatefulWidget {
 }
 
 class _RelatorioPageState extends State<RelatorioPage> {
+  final AlunoRepository alunoRepository = AlunoRepository();
+  final DiariasRepository diariasRepository = DiariasRepository();
+  final DespesasRepository despesasRepository = DespesasRepository();
+  List<Alunos> alunos = [];
+  List<Diarias> diarias = [];
+  List<Despesas> despesas = [];
+  int mensalidade = 0;
+  int vdiaria = 0;
+  int vdespesa = 0;
+  int liquido = 0;
+  @override
+  void initState() {
+    super.initState();
+    alunoRepository.getAlunos().then((value) {
+      setState(() {
+        alunos = value;
+        for (var aluno in alunos) {
+          if (aluno.pago == true) {
+            mensalidade += aluno.valor;
+          }
+        }
+      });
+      diariasRepository.getDiarias().then((value) {
+        setState(() {
+          diarias = value;
+          for (var diaria in diarias) {
+            if (diaria.pago == true) {
+              vdiaria += int.parse(diaria.valor);
+            }
+          }
+        });
+
+        despesasRepository.getDespesas().then((value) {
+          setState(() {
+            despesas = value;
+            for (var despesa in despesas) {
+              if (despesa.pago == true) {
+                vdespesa += despesa.valor;
+              }
+            }
+            liquido = mensalidade + vdiaria;
+            liquido -= vdespesa;
+            print(liquido);
+          });
+        });
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -79,70 +131,62 @@ class _RelatorioPageState extends State<RelatorioPage> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
-                              ElevatedButton(
-                                onPressed: () {},
-                                style: ButtonStyle(
-                                  backgroundColor:
-                                      MaterialStateProperty.all<Color>(
-                                          Color.fromRGBO(61, 61, 61, 1)),
-                                ),
-                                child: SizedBox(
-                                  width: 110,
-                                  height: 110,
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: const [
-                                      Text(
-                                        'Mensalidade',
-                                        style: TextStyle(
-                                            color: Colors.white,
-                                            fontFamily: 'Arial',
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                      SizedBox(
-                                        height: 5,
-                                      ),
-                                      Text(
-                                        'R\$ 1.000,00',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ],
-                                  ),
+                              Container(
+                                width: 140,
+                                height: 110,
+                                decoration: BoxDecoration(
+                                    color: Color.fromRGBO(61, 61, 61, 1),
+                                    borderRadius: BorderRadius.circular(5)),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      'Mensalidade',
+                                      style: TextStyle(
+                                          color: Colors.green,
+                                          fontFamily: 'Arial',
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    SizedBox(
+                                      height: 5,
+                                    ),
+                                    Text(
+                                      'R\$ $mensalidade',
+                                      style: TextStyle(
+                                          color: Colors.green,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              ElevatedButton(
-                                onPressed: () {},
-                                style: ButtonStyle(
-                                  backgroundColor:
-                                      MaterialStateProperty.all<Color>(
-                                          Color.fromRGBO(61, 61, 61, 1)),
-                                ),
-                                child: SizedBox(
-                                  width: 110,
-                                  height: 110,
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: const [
-                                      Text(
-                                        'Diárias',
-                                        style: TextStyle(
-                                            color: Colors.white,
-                                            fontFamily: 'Arial',
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                      SizedBox(
-                                        height: 5,
-                                      ),
-                                      Text(
-                                        'R\$ 1.000,00',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ],
-                                  ),
+                              Container(
+                                width: 140,
+                                height: 110,
+                                decoration: BoxDecoration(
+                                    color: Color.fromRGBO(61, 61, 61, 1),
+                                    borderRadius: BorderRadius.circular(5)),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      'Diárias',
+                                      style: TextStyle(
+                                          color: Colors.green,
+                                          fontFamily: 'Arial',
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    SizedBox(
+                                      height: 5,
+                                    ),
+                                    Text(
+                                      'R\$ $vdiaria',
+                                      style: TextStyle(
+                                          color: Colors.green,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
@@ -150,70 +194,62 @@ class _RelatorioPageState extends State<RelatorioPage> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
-                              ElevatedButton(
-                                onPressed: () {},
-                                style: ButtonStyle(
-                                  backgroundColor:
-                                      MaterialStateProperty.all<Color>(
-                                          Color.fromRGBO(61, 61, 61, 1)),
-                                ),
-                                child: SizedBox(
-                                  width: 110,
-                                  height: 110,
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: const [
-                                      Text(
-                                        'Despesas',
-                                        style: TextStyle(
-                                            color: Colors.white,
-                                            fontFamily: 'Arial',
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                      SizedBox(
-                                        height: 5,
-                                      ),
-                                      Text(
-                                        'R\$ 1.000,00',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ],
-                                  ),
+                              Container(
+                                width: 140,
+                                height: 110,
+                                decoration: BoxDecoration(
+                                    color: Color.fromRGBO(61, 61, 61, 1),
+                                    borderRadius: BorderRadius.circular(5)),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      'Despesas',
+                                      style: TextStyle(
+                                          color: Colors.red,
+                                          fontFamily: 'Arial',
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    SizedBox(
+                                      height: 5,
+                                    ),
+                                    Text(
+                                      'R\$ $vdespesa',
+                                      style: TextStyle(
+                                          color: Colors.red,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              ElevatedButton(
-                                onPressed: () {},
-                                style: ButtonStyle(
-                                  backgroundColor:
-                                      MaterialStateProperty.all<Color>(
-                                          Color.fromRGBO(61, 61, 61, 1)),
-                                ),
-                                child: SizedBox(
-                                  width: 110,
-                                  height: 110,
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: const [
-                                      Text(
-                                        'Líquido',
-                                        style: TextStyle(
-                                            color: Colors.white,
-                                            fontFamily: 'Arial',
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                      SizedBox(
-                                        height: 5,
-                                      ),
-                                      Text(
-                                        'R\$ 1.000,00',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ],
-                                  ),
+                              Container(
+                                width: 140,
+                                height: 110,
+                                decoration: BoxDecoration(
+                                    color: Color.fromRGBO(61, 61, 61, 1),
+                                    borderRadius: BorderRadius.circular(5)),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      'Líquido',
+                                      style: TextStyle(
+                                          color: Colors.yellow,
+                                          fontFamily: 'Arial',
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    SizedBox(
+                                      height: 5,
+                                    ),
+                                    Text(
+                                      'R\$ $liquido',
+                                      style: TextStyle(
+                                          color: Colors.yellow,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],

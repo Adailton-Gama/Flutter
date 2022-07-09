@@ -1,5 +1,10 @@
 import 'package:financas/pages/mainMenu.dart';
+import 'package:financas/widgets/mensal.dart';
 import 'package:flutter/material.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+
+import '../models/alunos.dart';
+import '../repository/repository.dart';
 
 class Mensalidades extends StatefulWidget {
   const Mensalidades({Key? key}) : super(key: key);
@@ -9,6 +14,33 @@ class Mensalidades extends StatefulWidget {
 }
 
 class _MensalidadesState extends State<Mensalidades> {
+  final AlunoRepository alunoRepository = AlunoRepository();
+  final MaskTextInputFormatter datemask =
+      MaskTextInputFormatter(mask: '##/##/####');
+  List<Alunos> alunos = [];
+  var count = 0;
+  int pagamento = 0;
+  int recebido = 0;
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    alunoRepository.getAlunos().then((value) {
+      alunos = value;
+      count = alunos.length;
+      setState(() {
+        for (Alunos aluno in alunos) {
+          pagamento += aluno.valor;
+        }
+        for (Alunos aluno in alunos) {
+          if (aluno.pago == true) {
+            recebido += aluno.valor;
+          }
+        }
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -65,63 +97,18 @@ class _MensalidadesState extends State<Mensalidades> {
                           height: MediaQuery.of(context).size.height * 0.5,
                           padding: EdgeInsets.all(5),
                           decoration: BoxDecoration(
-                              color: Color.fromRGBO(61, 61, 61, 1),
+                              color: Color.fromRGBO(38, 38, 38, 1),
                               borderRadius: BorderRadius.circular(5)),
                           child: Flexible(
                               child: ListView(
                             shrinkWrap: true,
                             children: [
-                              ElevatedButton(
-                                style: ButtonStyle(
-                                  backgroundColor: MaterialStateProperty.all(
-                                      Color.fromRGBO(61, 61, 61, 1)),
+                              //para cada mensalidade
+                              for (Alunos aluno in alunos)
+                                ItemMensalidade(
+                                  alunos: aluno,
+                                  editMensalidade: editMensalidade,
                                 ),
-                                onPressed: () => EditAluno(),
-                                child: Container(
-                                  alignment: Alignment.topLeft,
-                                  padding: EdgeInsets.all(5),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: const [
-                                          Text(
-                                            'Horário: Manhã - Plano: Mensal',
-                                            textAlign: TextAlign.start,
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w300),
-                                          ),
-                                        ],
-                                      ),
-                                      Row(
-                                        children: const [
-                                          Text(
-                                            'ADAILTON GAMA SANTANA',
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold),
-                                          ),
-                                        ],
-                                      ),
-                                      Row(
-                                        children: const [
-                                          Text(
-                                            'R\$ 40,00 - Status: Pendente',
-                                            textAlign: TextAlign.start,
-                                            style: TextStyle(
-                                                color: Colors.red,
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w300),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
                             ],
                           )),
                         ),
@@ -129,16 +116,16 @@ class _MensalidadesState extends State<Mensalidades> {
                           padding: EdgeInsets.all(10),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: const [
+                            children: [
                               Text(
-                                'Total de Alunos: 15',
+                                'Total de Alunos: $count',
                                 style: TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.w300,
                                     fontSize: 10),
                               ),
                               Text(
-                                'Valor Total: R\$ 600,00',
+                                'Valor Total: R\$ $pagamento',
                                 style: TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.w300,
@@ -151,9 +138,9 @@ class _MensalidadesState extends State<Mensalidades> {
                           padding: EdgeInsets.only(right: 10, bottom: 10),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.end,
-                            children: const [
+                            children: [
                               Text(
-                                'Valor Pago: R\$ 560,00',
+                                'Valor Recebido: R\$ $recebido',
                                 style: TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.w300,
@@ -207,222 +194,258 @@ class _MensalidadesState extends State<Mensalidades> {
     );
   }
 
-  void EditAluno() {
+  void editMensalidade(Alunos aluno) {
+    final TextEditingController id = TextEditingController();
+    final TextEditingController nome = TextEditingController();
+    final TextEditingController plano = TextEditingController();
+    final TextEditingController dPagamento = TextEditingController();
+    final TextEditingController dqpago = TextEditingController();
+    final TextEditingController valor = TextEditingController();
+    final TextEditingController obs = TextEditingController();
+    setState(() {
+      id.text = aluno.id.toString();
+      nome.text = aluno.nome;
+      plano.text = aluno.plano;
+      dPagamento.text = aluno.dPagamento;
+      valor.text = aluno.valor.toString();
+      dqpago.text = aluno.dqpago;
+      obs.text = aluno.observacoes;
+    });
     showDialog(
         context: context,
         builder: (context) => AlertDialog(
               backgroundColor: Color.fromRGBO(61, 61, 61, 1),
-              content: Flexible(
-                child: ListView(
-                  shrinkWrap: true,
-                  children: [
-                    Container(
-                        color: Color.fromRGBO(61, 61, 61, 1),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text('DADOS DO PAGAMENTO',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold)),
-                            Container(
-                              padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
-                              height: 30,
-                              child: TextField(
-                                style: TextStyle(color: Colors.white),
-                                decoration: InputDecoration(
-                                  contentPadding:
-                                      EdgeInsets.fromLTRB(12, 0, 12, 0),
-                                  hintText: 'ID: ',
-                                  hintStyle: TextStyle(color: Colors.white),
-                                  enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                  focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                ),
+              content: Container(
+                  color: Color.fromRGBO(61, 61, 61, 1),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('DADOS DO PAGAMENTO',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold)),
+                      Container(
+                        padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
+                        height: 30,
+                        child: TextField(
+                          controller: id,
+                          style: TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            contentPadding: EdgeInsets.fromLTRB(12, 0, 12, 0),
+                            hintText: 'ID: ',
+                            hintStyle: TextStyle(color: Colors.white),
+                            enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Color.fromRGBO(91, 91, 91, 1),
+                                    width: 1)),
+                            focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Color.fromRGBO(91, 91, 91, 1),
+                                    width: 1)),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
+                        height: 30,
+                        child: TextField(
+                          controller: nome,
+                          style: TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            contentPadding: EdgeInsets.fromLTRB(12, 0, 12, 0),
+                            hintText: 'NOME: ',
+                            hintStyle: TextStyle(color: Colors.white),
+                            enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Color.fromRGBO(91, 91, 91, 1),
+                                    width: 1)),
+                            focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Color.fromRGBO(91, 91, 91, 1),
+                                    width: 1)),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
+                        height: 30,
+                        child: TextField(
+                          controller: plano,
+                          style: TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            contentPadding: EdgeInsets.fromLTRB(12, 0, 12, 0),
+                            hintText: 'PLANO: ',
+                            hintStyle: TextStyle(color: Colors.white),
+                            enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Color.fromRGBO(91, 91, 91, 1),
+                                    width: 1)),
+                            focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Color.fromRGBO(91, 91, 91, 1),
+                                    width: 1)),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
+                        height: 30,
+                        child: TextField(
+                          controller: dPagamento,
+                          inputFormatters: [datemask],
+                          keyboardType: TextInputType.number,
+                          style: TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            contentPadding: EdgeInsets.fromLTRB(12, 0, 12, 0),
+                            hintText: 'DATA DE VENCIMENTO: ',
+                            hintStyle: TextStyle(color: Colors.white),
+                            enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Color.fromRGBO(91, 91, 91, 1),
+                                    width: 1)),
+                            focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Color.fromRGBO(91, 91, 91, 1),
+                                    width: 1)),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
+                        height: 30,
+                        child: TextField(
+                          controller: valor,
+                          style: TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            contentPadding: EdgeInsets.fromLTRB(12, 0, 12, 0),
+                            hintText: 'VALOR: ',
+                            hintStyle: TextStyle(color: Colors.white),
+                            enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Color.fromRGBO(91, 91, 91, 1),
+                                    width: 1)),
+                            focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Color.fromRGBO(91, 91, 91, 1),
+                                    width: 1)),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
+                        height: 30,
+                        child: TextField(
+                          controller: dqpago,
+                          inputFormatters: [datemask],
+                          keyboardType: TextInputType.number,
+                          style: TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            contentPadding: EdgeInsets.fromLTRB(12, 0, 12, 0),
+                            hintText: 'DATA DE PAGAMENTO: ',
+                            hintStyle: TextStyle(color: Colors.white),
+                            enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Color.fromRGBO(91, 91, 91, 1),
+                                    width: 1)),
+                            focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Color.fromRGBO(91, 91, 91, 1),
+                                    width: 1)),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
+                        margin: EdgeInsets.only(bottom: 20),
+                        height: 30,
+                        child: TextField(
+                          controller: obs,
+                          style: TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            contentPadding: EdgeInsets.fromLTRB(12, 0, 12, 0),
+                            hintText: 'OBSERVAÇÕES: ',
+                            hintStyle: TextStyle(color: Colors.white),
+                            enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Color.fromRGBO(91, 91, 91, 1),
+                                    width: 1)),
+                            focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Color.fromRGBO(91, 91, 91, 1),
+                                    width: 1)),
+                          ),
+                        ),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                int controle = 1;
+                                if (controle == '') {
+                                  print(1);
+                                } else {
+                                  aluno.nome = nome.text;
+                                  aluno.plano = plano.text;
+                                  aluno.dPagamento = dPagamento.text;
+                                  aluno.valor = int.parse(valor.text);
+                                  aluno.dqpago = dqpago.text;
+                                  aluno.observacoes = obs.text;
+                                  if (aluno.dqpago != '') {
+                                    aluno.pago = true;
+                                    recebido += aluno.valor;
+                                  } else {
+                                    aluno.pago = false;
+                                    for (Alunos aluno in alunos) {
+                                      if (aluno.pago == true) {
+                                        recebido = 0;
+                                        recebido += aluno.valor;
+                                      }
+                                    }
+                                  }
+                                  alunoRepository.saveAlunoList(alunos);
+                                  ScaffoldMessenger.of(context)
+                                      .clearSnackBars();
+                                  Future.delayed(Duration(milliseconds: 300))
+                                      .then((value) {
+                                    Navigator.pop(context);
+                                  });
+                                }
+                              });
+                            },
+                            style: ButtonStyle(
+                              backgroundColor: MaterialStateProperty.all<Color>(
+                                  Colors.black),
+                            ),
+                            child: Container(
+                              child: Row(
+                                children: const [Text('CONFIRMAR')],
                               ),
                             ),
-                            Container(
-                              padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
-                              height: 30,
-                              child: TextField(
-                                style: TextStyle(color: Colors.white),
-                                decoration: InputDecoration(
-                                  contentPadding:
-                                      EdgeInsets.fromLTRB(12, 0, 12, 0),
-                                  hintText: 'NOME: ',
-                                  hintStyle: TextStyle(color: Colors.white),
-                                  enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                  focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                ),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              ScaffoldMessenger.of(context).clearSnackBars();
+                              Future.delayed(Duration(milliseconds: 300))
+                                  .then((value) {
+                                Navigator.pop(context);
+                              });
+                            },
+                            style: ButtonStyle(
+                              backgroundColor: MaterialStateProperty.all<Color>(
+                                  Colors.black),
+                            ),
+                            child: Container(
+                              child: Row(
+                                children: const [Text('VOLTAR')],
                               ),
                             ),
-                            Container(
-                              padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
-                              height: 30,
-                              child: TextField(
-                                style: TextStyle(color: Colors.white),
-                                decoration: InputDecoration(
-                                  contentPadding:
-                                      EdgeInsets.fromLTRB(12, 0, 12, 0),
-                                  hintText: 'PLANO: ',
-                                  hintStyle: TextStyle(color: Colors.white),
-                                  enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                  focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                ),
-                              ),
-                            ),
-                            Container(
-                              padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
-                              height: 30,
-                              child: TextField(
-                                style: TextStyle(color: Colors.white),
-                                decoration: InputDecoration(
-                                  contentPadding:
-                                      EdgeInsets.fromLTRB(12, 0, 12, 0),
-                                  hintText: 'DATA DE VENCIMENTO: ',
-                                  hintStyle: TextStyle(color: Colors.white),
-                                  enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                  focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                ),
-                              ),
-                            ),
-                            Container(
-                              padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
-                              height: 30,
-                              child: TextField(
-                                style: TextStyle(color: Colors.white),
-                                decoration: InputDecoration(
-                                  contentPadding:
-                                      EdgeInsets.fromLTRB(12, 0, 12, 0),
-                                  hintText: 'VALOR: ',
-                                  hintStyle: TextStyle(color: Colors.white),
-                                  enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                  focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                ),
-                              ),
-                            ),
-                            Container(
-                              padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
-                              height: 30,
-                              child: TextField(
-                                style: TextStyle(color: Colors.white),
-                                decoration: InputDecoration(
-                                  contentPadding:
-                                      EdgeInsets.fromLTRB(12, 0, 12, 0),
-                                  hintText: 'DATA DE PAGAMENTO: ',
-                                  hintStyle: TextStyle(color: Colors.white),
-                                  enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                  focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                ),
-                              ),
-                            ),
-                            Container(
-                              padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
-                              margin: EdgeInsets.only(bottom: 20),
-                              height: 30,
-                              child: TextField(
-                                style: TextStyle(color: Colors.white),
-                                decoration: InputDecoration(
-                                  contentPadding:
-                                      EdgeInsets.fromLTRB(12, 0, 12, 0),
-                                  hintText: 'OBSERVAÇÕES: ',
-                                  hintStyle: TextStyle(color: Colors.white),
-                                  enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                  focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromRGBO(91, 91, 91, 1),
-                                          width: 1)),
-                                ),
-                              ),
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                ElevatedButton(
-                                  onPressed: () {
-                                    ScaffoldMessenger.of(context)
-                                        .clearSnackBars();
-                                    Future.delayed(Duration(milliseconds: 300))
-                                        .then((value) {
-                                      Navigator.pop(context);
-                                    });
-                                  },
-                                  style: ButtonStyle(
-                                    backgroundColor:
-                                        MaterialStateProperty.all<Color>(
-                                            Colors.black),
-                                  ),
-                                  child: Container(
-                                    child: Row(
-                                      children: const [Text('CONFIRMAR')],
-                                    ),
-                                  ),
-                                ),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    ScaffoldMessenger.of(context)
-                                        .clearSnackBars();
-                                    Future.delayed(Duration(milliseconds: 300))
-                                        .then((value) {
-                                      Navigator.pop(context);
-                                    });
-                                  },
-                                  style: ButtonStyle(
-                                    backgroundColor:
-                                        MaterialStateProperty.all<Color>(
-                                            Colors.black),
-                                  ),
-                                  child: Container(
-                                    child: Row(
-                                      children: const [Text('VOLTAR')],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            )
-                          ],
-                        )),
-                  ],
-                ),
-              ),
+                          ),
+                        ],
+                      )
+                    ],
+                  )),
             ));
   }
 }
