@@ -42,9 +42,18 @@ class ResPage extends StatelessWidget {
                 return ListView.builder(
                     itemCount: snapshot.data!.length,
                     itemBuilder: (context, index) {
-                      return ListTile(
-                        title:
-                            Text(snapshot.data![index]['objetos']['codObjeto']),
+                      return ElevatedButton(
+                        onPressed: () {
+                          showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                    content: Text('aa'),
+                                  ));
+                        },
+                        child: ListTile(
+                          title: Text(
+                              snapshot.data![index]['objetos']['codObjeto']),
+                        ),
                       );
                     });
               }
