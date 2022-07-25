@@ -1,9 +1,17 @@
+import 'dart:io';
+import 'dart:ui';
+import 'firebase_options.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:financas/pages/splash.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-void main() {
-  runApp(const Home());
+Future<void> main() async {
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  runApp(Home());
 }
 
 class Home extends StatefulWidget {
@@ -14,6 +22,7 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  final Future<FirebaseApp> _fbApp = Firebase.initializeApp();
   @override
   void initState() {
     super.initState();
@@ -23,12 +32,24 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        backgroundColor: Colors.black,
-        body: Splash(),
-      ),
-    );
+    return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: FutureBuilder(
+          future: _fbApp,
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              print(snapshot.error.toString());
+              return Text('erro: ${snapshot.error.toString()}');
+            } else if (snapshot.hasData) {
+              return Scaffold(
+                backgroundColor: Colors.black,
+                body: Splash(),
+              );
+            } else {}
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          },
+        ));
   }
 }

@@ -5,6 +5,7 @@ import 'package:financas/pages/mensalidades.dart';
 import 'package:financas/pages/relatorio.dart';
 import 'package:flutter/material.dart';
 
+import '../main.dart';
 import 'loginPage.dart';
 
 class MainMenu extends StatefulWidget {

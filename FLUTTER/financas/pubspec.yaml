@@ -19,11 +19,15 @@ dependencies:
   cupertino_icons: ^1.0.2
   intl:
   mask_text_input_formatter: ^2.3.0
-  firebase_core: ^1.18.0
   shared_preferences: ^2.0.15
   vibration: ^1.7.4-nullsafety.0
   share_plus: ^4.0.6
   flutter_slidable: ^0.6.0
+  cloud_firestore: ^3.4.0
+  google_sign_in: ^5.4.0
+  firebase_storage: ^10.3.3
+  firebase_auth: ^3.5.0
+  firebase_core: ^1.20.0
 
 
 
