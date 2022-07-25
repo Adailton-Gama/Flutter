@@ -6,10 +6,10 @@ class Alunos {
   String plano;
   String dPagamento;
   int valor;
-  String telefone;
+  String? telefone;
   String observacoes;
-  bool pago = false;
-  String dqpago;
+  bool? pago = false;
+  String? dqpago;
 
   Alunos({
     required this.id,
@@ -17,11 +17,12 @@ class Alunos {
     required this.plano,
     required this.dPagamento,
     required this.valor,
-    required this.telefone,
+    this.telefone,
     required this.observacoes,
-    required this.pago,
-    required this.dqpago,
-  });
+    this.pago,
+    this.dqpago,
+  }    
+);
 
   Alunos.fromJson(Map<String, dynamic> json)
       : id = json['id'],

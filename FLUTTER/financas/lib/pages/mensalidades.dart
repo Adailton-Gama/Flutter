@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:financas/pages/mainMenu.dart';
 import 'package:financas/widgets/mensal.dart';
 import 'package:flutter/material.dart';
@@ -25,24 +26,12 @@ class _MensalidadesState extends State<Mensalidades> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    alunoRepository.getAlunos().then((value) {
-      alunos = value;
-      count = alunos.length;
-      setState(() {
-        for (Alunos aluno in alunos) {
-          pagamento += aluno.valor;
-        }
-        for (Alunos aluno in alunos) {
-          if (aluno.pago == true) {
-            recebido += aluno.valor;
-          }
-        }
-      });
-    });
+    attValores();
   }
 
   @override
   Widget build(BuildContext context) {
+    final CollectionReference _alunosRef = FirebaseFirestore.instance.collection('alunos');
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.black,
@@ -100,17 +89,81 @@ class _MensalidadesState extends State<Mensalidades> {
                               color: Color.fromRGBO(38, 38, 38, 1),
                               borderRadius: BorderRadius.circular(5)),
                           child: Flexible(
-                              child: ListView(
-                            shrinkWrap: true,
-                            children: [
-                              //para cada mensalidade
-                              for (Alunos aluno in alunos)
-                                ItemMensalidade(
-                                  alunos: aluno,
-                                  editMensalidade: editMensalidade,
-                                ),
-                            ],
-                          )),
+                              child: StreamBuilder(
+                                stream:_alunosRef.snapshots(), 
+                                builder: (context, AsyncSnapshot<QuerySnapshot> snapshot)
+                                {
+                                if(snapshot.hasData){
+                                  return Container(
+                                    width:
+                                            MediaQuery.of(context).size.width *
+                                                0.9,
+      margin: EdgeInsets.only(bottom: 5),
+      child: ListView.builder(itemCount:snapshot.data!.docs.length,itemBuilder: (context, index){
+        final DocumentSnapshot documentSnapshot = snapshot.data!.docs[index];
+        return Container(
+          child: ElevatedButton(
+        style: ButtonStyle(
+          backgroundColor:
+              MaterialStateProperty.all(Color.fromRGBO(61, 61, 61, 1)),
+        ),
+        onPressed: () => editMensalidade(documentSnapshot.id.toString()),
+        child: Container(
+          alignment: Alignment.topLeft,
+          padding: EdgeInsets.all(5),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    'Plano: ${documentSnapshot['plano']}',
+                    textAlign: TextAlign.start,
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w300),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Text(
+                    '${documentSnapshot['nome']}',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Text(
+                    'R\$ ${documentSnapshot['valor']} - Status: ${documentSnapshot['pago'] ? 'Pago' : 'Pendente'}',
+                    textAlign: TextAlign.start,
+                    style: TextStyle(
+                        color: documentSnapshot['pago'] ? Colors.green : Colors.red,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w300),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),);
+      },),
+    );;
+                                }else if(snapshot.hasError){
+                                  print('error: ${snapshot.error.toString()}');
+                                  return Center(child: Text(snapshot.error.toString()),);
+                                }
+                                return Center(
+                                  child: CircularProgressIndicator(),
+                                );
+                              },
+                              )),
                         ),
                         Container(
                           padding: EdgeInsets.all(10),
@@ -194,7 +247,8 @@ class _MensalidadesState extends State<Mensalidades> {
     );
   }
 
-  void editMensalidade(Alunos aluno) {
+  void editMensalidade(String aluno) {
+    FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
     final TextEditingController id = TextEditingController();
     final TextEditingController nome = TextEditingController();
     final TextEditingController plano = TextEditingController();
@@ -202,15 +256,20 @@ class _MensalidadesState extends State<Mensalidades> {
     final TextEditingController dqpago = TextEditingController();
     final TextEditingController valor = TextEditingController();
     final TextEditingController obs = TextEditingController();
+
     setState(() {
-      id.text = aluno.id.toString();
-      nome.text = aluno.nome;
-      plano.text = aluno.plano;
-      dPagamento.text = aluno.dPagamento;
-      valor.text = aluno.valor.toString();
-      dqpago.text = aluno.dqpago;
-      obs.text = aluno.observacoes;
-    });
+      final docRef = firebaseFirestore.collection('alunos').doc(aluno);
+      docRef.get().then((DocumentSnapshot aluno) {
+        final data = aluno.data() as Map<String, dynamic>;
+         id.text = data['id'].toString();
+      nome.text = data['nome'];
+      plano.text = data['plano'];
+      dPagamento.text = data['dPagamento'];
+      valor.text = data['valor'].toString();
+      dqpago.text = data['dqpago'];
+      obs.text = data['observacoes'];
+      
+    
     showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -332,28 +391,38 @@ class _MensalidadesState extends State<Mensalidades> {
                         ),
                       ),
                       Container(
-                        padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
-                        height: 30,
-                        child: TextField(
-                          controller: dqpago,
-                          inputFormatters: [datemask],
-                          keyboardType: TextInputType.number,
-                          style: TextStyle(color: Colors.white),
-                          decoration: InputDecoration(
-                            contentPadding: EdgeInsets.fromLTRB(12, 0, 12, 0),
-                            hintText: 'DATA DE PAGAMENTO: ',
-                            hintStyle: TextStyle(color: Colors.white),
-                            enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: Color.fromRGBO(91, 91, 91, 1),
-                                    width: 1)),
-                            focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: Color.fromRGBO(91, 91, 91, 1),
-                                    width: 1)),
+                          padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
+                          height: 30,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                if (data['pago'] == true) {
+                                  data['pago'] = false;
+                                  recebido -= int.parse(data['valor']);
+                                  docRef.update(data['pago']);
+                                } else {
+                                  data['pago'] = true;
+                                  recebido += int.parse(data['valor']);
+                                  docRef.update(data['pago']);
+                                }
+                              });
+                            },
+                            style: ButtonStyle(
+                              backgroundColor: data['pago']
+                                  ? MaterialStateProperty.all<Color>(
+                                      Colors.green)
+                                  : MaterialStateProperty.all<Color>(
+                                      Colors.red),
+                            ),
+                            child: Container(
+                              child: Row(
+                                children: [
+                                  Text(data['pago'] ? 'PAGO' : 'PENDENTE')
+                                ],
+                              ),
+                            ),
+                            ),
                           ),
-                        ),
-                      ),
                       Container(
                         padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
                         margin: EdgeInsets.only(bottom: 20),
@@ -386,24 +455,16 @@ class _MensalidadesState extends State<Mensalidades> {
                                 if (controle == '') {
                                   print(1);
                                 } else {
-                                  aluno.nome = nome.text;
-                                  aluno.plano = plano.text;
-                                  aluno.dPagamento = dPagamento.text;
-                                  aluno.valor = int.parse(valor.text);
-                                  aluno.dqpago = dqpago.text;
-                                  aluno.observacoes = obs.text;
-                                  if (aluno.dqpago != '') {
-                                    aluno.pago = true;
-                                    recebido += aluno.valor;
-                                  } else {
-                                    aluno.pago = false;
-                                    for (Alunos aluno in alunos) {
-                                      if (aluno.pago == true) {
-                                        recebido = 0;
-                                        recebido += aluno.valor;
-                                      }
-                                    }
-                                  }
+                                  Alunos editAluno = Alunos(
+                                    id: int.parse(id.text),
+                                      nome: nome.text,
+                                      plano: plano.text,
+                                      dPagamento: dPagamento.text,
+                                      valor: int.parse(valor.text),
+                                      observacoes: obs.text,                                      
+                                  );
+                                  
+                                  
                                   alunoRepository.saveAlunoList(alunos);
                                   ScaffoldMessenger.of(context)
                                       .clearSnackBars();
@@ -447,5 +508,34 @@ class _MensalidadesState extends State<Mensalidades> {
                     ],
                   )),
             ));
+            }, onError: (e)=>print('error: $e'));     
+            });
+  }
+  void attValores() {
+    setState(() {
+      setState(() {
+        pagamento = 0;
+        FirebaseFirestore fi = FirebaseFirestore.instance;
+        fi.collection('alunos').get().then(
+          (value) {
+            setState(() {
+              count = value.size;
+            });
+            print(count);
+          },
+        );
+      });
+      setState(() {
+        FirebaseFirestore fi = FirebaseFirestore.instance;
+        fi
+            .collection('alunos')
+            .get()
+            .then((snap) => snap.docs.forEach((element) {
+                  print(element['valor'].toString());
+                  pagamento += int.parse(element['valor'].toString());
+                }));
+        print(pagamento);
+      });
+    });
   }
 }

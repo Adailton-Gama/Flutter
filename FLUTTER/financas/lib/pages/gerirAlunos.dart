@@ -19,7 +19,6 @@ class GerirAlunos extends StatefulWidget {
 class _GerirAlunosState extends State<GerirAlunos> {
   final CollectionReference _alunosref =
       FirebaseFirestore.instance.collection('alunos');
-  final AlunoRepository alunoRepository = AlunoRepository();
   final MaskTextInputFormatter datemask =
       MaskTextInputFormatter(mask: "##/##/####");
   final MaskTextInputFormatter telmask =
