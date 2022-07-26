@@ -21,8 +21,7 @@ class Alunos {
     required this.observacoes,
     this.pago,
     this.dqpago,
-  }    
-);
+  });
 
   Alunos.fromJson(Map<String, dynamic> json)
       : id = json['id'],
@@ -90,7 +89,6 @@ class Despesas {
   String nome;
   int valor;
   String dVencimento;
-  String dPagamento;
   bool pago = false;
   String observacoes;
   Despesas(
@@ -98,7 +96,6 @@ class Despesas {
       required this.nome,
       required this.valor,
       required this.dVencimento,
-      required this.dPagamento,
       required this.pago,
       required this.observacoes});
 
@@ -107,7 +104,6 @@ class Despesas {
         nome = json['nome'],
         valor = json['valor'],
         dVencimento = json['dVencimento'],
-        dPagamento = json['dPagamento'],
         pago = json['status'],
         observacoes = json['observacoes'];
 
@@ -117,7 +113,6 @@ class Despesas {
       'nome': nome,
       'valor': valor,
       'dVencimento': dVencimento,
-      'dPagamento': dPagamento,
       'status': pago,
       'observacoes': observacoes,
     };

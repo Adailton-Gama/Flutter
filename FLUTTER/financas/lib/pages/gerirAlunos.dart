@@ -438,6 +438,7 @@ class _GerirAlunosState extends State<GerirAlunos> {
                             padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
                             height: 30,
                             child: TextField(
+                              keyboardType: TextInputType.numberWithOptions(),
                               controller: valor,
                               style: TextStyle(color: Colors.white),
                               decoration: InputDecoration(
@@ -747,6 +748,7 @@ class _GerirAlunosState extends State<GerirAlunos> {
                             padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
                             height: 30,
                             child: TextField(
+                              keyboardType: TextInputType.numberWithOptions(),
                               controller: valor,
                               style: TextStyle(color: Colors.white),
                               decoration: InputDecoration(

@@ -1,14 +1,18 @@
 import 'dart:math';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:financas/pages/mainMenu.dart';
 import 'package:financas/repository/repository.dart';
 import 'package:financas/widgets/itemDespesa.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:vibration/vibration.dart';
 
 import '../models/alunos.dart';
+
+bool pgStatus = false;
 
 class DespesasPage extends StatefulWidget {
   const DespesasPage({Key? key}) : super(key: key);
@@ -18,28 +22,18 @@ class DespesasPage extends StatefulWidget {
 }
 
 class _DespesasPageState extends State<DespesasPage> {
-  DespesasRepository despesasRepository = DespesasRepository();
+  final CollectionReference _despesasRef =
+      FirebaseFirestore.instance.collection('despesas');
   final MaskTextInputFormatter datemask =
       MaskTextInputFormatter(mask: "##/##/####");
   List<Despesas> despesas = [];
-  int total = 0;
-  int pagos = 0;
+  int pagamento = 0;
+  int recebido = 0;
   var count;
   @override
   void initState() {
     super.initState();
-    despesasRepository.getDespesas().then((value) {
-      setState(() {
-        despesas = value;
-        count = despesas.length;
-        for (var despesa in despesas) {
-          total += despesa.valor;
-          if (despesa.pago == true) {
-            pagos += despesa.valor;
-          }
-        }
-      });
-    });
+    attValores();
   }
 
   @override
@@ -100,16 +94,110 @@ class _DespesasPageState extends State<DespesasPage> {
                             color: const Color.fromRGBO(61, 61, 61, 1),
                             borderRadius: BorderRadius.circular(5)),
                         child: Flexible(
-                            child: ListView(
-                          shrinkWrap: true,
-                          children: [
-                            //Para cada despesa
-                            for (Despesas despesa in despesas)
-                              ItemDespesa(
-                                  despesa: despesa,
-                                  editDespesa: editDespesa,
-                                  onDelete: onDelete),
-                          ],
+                            child: StreamBuilder(
+                          stream: _despesasRef.snapshots(),
+                          builder:
+                              (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                            if (snapshot.hasData) {
+                              return Container(
+                                width: MediaQuery.of(context).size.width * 0.9,
+                                child: ListView.builder(
+                                  itemCount: snapshot.data!.docs.length,
+                                  itemBuilder: (context, index) {
+                                    final DocumentSnapshot docSnapshot =
+                                        snapshot.data!.docs[index];
+                                    return Container(
+                                      child: Slidable(
+                                        actionPane: SlidableStrechActionPane(),
+                                        secondaryActions: [
+                                          IconSlideAction(
+                                            color: Colors.red,
+                                            icon: Icons.delete,
+                                            caption: 'Deletar',
+                                            onTap: () {
+                                              onDelete(
+                                                  docSnapshot.id.toString());
+                                            },
+                                          ),
+                                        ],
+                                        child: ElevatedButton(
+                                          style: ButtonStyle(
+                                            backgroundColor:
+                                                MaterialStateProperty.all(
+                                                    const Color.fromRGBO(
+                                                        61, 61, 61, 1)),
+                                          ),
+                                          onPressed: () => editDespesa(
+                                              docSnapshot.id.toString()),
+                                          child: Container(
+                                            alignment: Alignment.topLeft,
+                                            padding: const EdgeInsets.all(5),
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.start,
+                                              children: [
+                                                Row(
+                                                  children: [
+                                                    Text(
+                                                      'Data de Vencimento: ${docSnapshot['dVencimento']}',
+                                                      textAlign:
+                                                          TextAlign.start,
+                                                      style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 14,
+                                                          fontWeight:
+                                                              FontWeight.w300),
+                                                    ),
+                                                  ],
+                                                ),
+                                                Row(
+                                                  children: [
+                                                    Text(
+                                                      '${docSnapshot['nome']}',
+                                                      style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 16,
+                                                          fontWeight:
+                                                              FontWeight.bold),
+                                                    ),
+                                                  ],
+                                                ),
+                                                Row(
+                                                  children: [
+                                                    Text(
+                                                      'R\$ ${docSnapshot['valor']} - Status: ${docSnapshot['status'] ? 'Pago' : 'Pendente'}',
+                                                      textAlign:
+                                                          TextAlign.start,
+                                                      style: TextStyle(
+                                                          color: docSnapshot[
+                                                                  'status']
+                                                              ? Colors.green
+                                                              : Colors.red,
+                                                          fontSize: 14,
+                                                          fontWeight:
+                                                              FontWeight.w300),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              );
+                            } else if (snapshot.hasError) {
+                              print('error: ${snapshot.error.toString()}');
+                              return Center(
+                                child: Text('Erro ao carregar dados'),
+                              );
+                            }
+                            return Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          },
                         )),
                       ),
                       Container(
@@ -125,7 +213,7 @@ class _DespesasPageState extends State<DespesasPage> {
                                   fontSize: 10),
                             ),
                             Text(
-                              'Valor Total: R\$ $total',
+                              'Valor Total: R\$ $pagamento',
                               style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w300,
@@ -140,7 +228,7 @@ class _DespesasPageState extends State<DespesasPage> {
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             Text(
-                              'Valor Pago: R\$ $pagos',
+                              'Valor Pago: R\$ $recebido',
                               style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w300,
@@ -214,7 +302,8 @@ class _DespesasPageState extends State<DespesasPage> {
     );
   }
 
-  void editDespesa(Despesas despesa) {
+  void editDespesa(String despesa) {
+    final FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
     final TextEditingController id = TextEditingController();
     final TextEditingController nome = TextEditingController();
     final TextEditingController valor = TextEditingController();
@@ -222,226 +311,231 @@ class _DespesasPageState extends State<DespesasPage> {
     final TextEditingController dPagamento = TextEditingController();
     final TextEditingController observacoes = TextEditingController();
     setState(() {
-      id.text = despesa.id.toString();
-      nome.text = despesa.nome;
-      valor.text = despesa.valor.toString();
-      dVencimento.text = despesa.dVencimento;
-      dPagamento.text = despesa.dPagamento;
-      observacoes.text = despesa.observacoes;
-    });
-    showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-              backgroundColor: const Color.fromRGBO(61, 61, 61, 1),
-              content: Container(
-                  color: const Color.fromRGBO(61, 61, 61, 1),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text('DADOS DO PAGAMENTO',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold)),
-                      Container(
-                        padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
-                        height: 30,
-                        child: const TextField(
-                          style: TextStyle(color: Colors.white),
-                          decoration: InputDecoration(
-                            contentPadding: EdgeInsets.fromLTRB(12, 0, 12, 0),
-                            hintText: 'ID: ',
-                            hintStyle: TextStyle(color: Colors.white),
-                            enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: Color.fromRGBO(91, 91, 91, 1),
-                                    width: 1)),
-                            focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: Color.fromRGBO(91, 91, 91, 1),
-                                    width: 1)),
-                          ),
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
-                        height: 30,
-                        child: const TextField(
-                          style: TextStyle(color: Colors.white),
-                          decoration: InputDecoration(
-                            contentPadding: EdgeInsets.fromLTRB(12, 0, 12, 0),
-                            hintText: 'NOME: ',
-                            hintStyle: TextStyle(color: Colors.white),
-                            enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: Color.fromRGBO(91, 91, 91, 1),
-                                    width: 1)),
-                            focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: Color.fromRGBO(91, 91, 91, 1),
-                                    width: 1)),
-                          ),
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
-                        height: 30,
-                        child: const TextField(
-                          style: TextStyle(color: Colors.white),
-                          decoration: InputDecoration(
-                            contentPadding: EdgeInsets.fromLTRB(12, 0, 12, 0),
-                            hintText: 'VALOR: ',
-                            hintStyle: TextStyle(color: Colors.white),
-                            enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: Color.fromRGBO(91, 91, 91, 1),
-                                    width: 1)),
-                            focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: Color.fromRGBO(91, 91, 91, 1),
-                                    width: 1)),
-                          ),
-                        ),
-                      ),
-                      Container(
-                        padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
-                        height: 35,
-                        child: TextField(
-                          inputFormatters: [datemask],
-                          keyboardType: TextInputType.number,
-                          style: TextStyle(color: Colors.white),
-                          decoration: InputDecoration(
-                            contentPadding: EdgeInsets.fromLTRB(12, 0, 12, 0),
-                            hintText: 'Data de Vencimento: ',
-                            hintStyle: TextStyle(color: Colors.white),
-                            enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: Color.fromRGBO(91, 91, 91, 1),
-                                    width: 1)),
-                            focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: Color.fromRGBO(91, 91, 91, 1),
-                                    width: 1)),
-                          ),
-                        ),
-                      ),
-                      Container(
-                        padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
-                        height: 35,
-                        child: TextField(
-                          inputFormatters: [datemask],
-                          keyboardType: TextInputType.number,
-                          style: TextStyle(color: Colors.white),
-                          decoration: InputDecoration(
-                            contentPadding: EdgeInsets.fromLTRB(12, 0, 12, 0),
-                            hintText: 'Data de Pagamento: ',
-                            hintStyle: TextStyle(color: Colors.white),
-                            enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: Color.fromRGBO(91, 91, 91, 1),
-                                    width: 1)),
-                            focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: Color.fromRGBO(91, 91, 91, 1),
-                                    width: 1)),
-                          ),
-                        ),
-                      ),
-                      Container(
-                        padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
-                        height: 30,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            setState(() {
-                              if (despesa.pago == true) {
-                                despesa.pago = false;
-                                pagos -= despesa.valor;
-                                despesasRepository.saveDespesasList(despesas);
-                              } else {
-                                despesa.pago = true;
-                                pagos += despesa.valor;
-                                despesasRepository.saveDespesasList(despesas);
-                              }
-                            });
-                          },
-                          style: ButtonStyle(
-                            backgroundColor: despesa.pago
-                                ? MaterialStateProperty.all<Color>(Colors.green)
-                                : MaterialStateProperty.all<Color>(Colors.red),
-                          ),
-                          child: Container(
-                            child: Row(
-                              children: [
-                                Text(despesa.pago ? 'PAGO' : 'PENDENTE')
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      Container(
-                        padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
-                        margin: EdgeInsets.only(bottom: 20),
-                        height: 30,
-                        child: TextField(
-                          style: TextStyle(color: Colors.white),
-                          decoration: InputDecoration(
-                            contentPadding: EdgeInsets.fromLTRB(12, 0, 12, 0),
-                            hintText: 'OBSERVAÇÕES: ',
-                            hintStyle: TextStyle(color: Colors.white),
-                            enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: Color.fromRGBO(91, 91, 91, 1),
-                                    width: 1)),
-                            focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: Color.fromRGBO(91, 91, 91, 1),
-                                    width: 1)),
-                          ),
-                        ),
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      final docRef = firebaseFirestore.collection('despesas').doc(despesa);
+      docRef.get().then((DocumentSnapshot despesa) {
+        final data = despesa.data() as Map<String, dynamic>;
+        id.text = data['id'].toString();
+        nome.text = data['nome'];
+        valor.text = data['valor'].toString();
+        dVencimento.text = data['dVencimento'];
+        dPagamento.text = data['dPagamento'];
+        observacoes.text = data['observacoes'];
+
+        showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+                  backgroundColor: const Color.fromRGBO(61, 61, 61, 1),
+                  content: Container(
+                      color: const Color.fromRGBO(61, 61, 61, 1),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          ElevatedButton(
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).clearSnackBars();
-                              Future.delayed(Duration(milliseconds: 300))
-                                  .then((value) {
-                                Navigator.pop(context);
-                              });
-                            },
-                            style: ButtonStyle(
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                  Colors.black),
-                            ),
-                            child: Container(
-                              child: Row(
-                                children: const [Text('CONFIRMAR')],
+                          const Text('DADOS DO PAGAMENTO',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold)),
+                          Container(
+                            padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
+                            height: 30,
+                            child: const TextField(
+                              style: TextStyle(color: Colors.white),
+                              decoration: InputDecoration(
+                                contentPadding:
+                                    EdgeInsets.fromLTRB(12, 0, 12, 0),
+                                hintText: 'ID: ',
+                                hintStyle: TextStyle(color: Colors.white),
+                                enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Color.fromRGBO(91, 91, 91, 1),
+                                        width: 1)),
+                                focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Color.fromRGBO(91, 91, 91, 1),
+                                        width: 1)),
                               ),
                             ),
                           ),
-                          ElevatedButton(
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).clearSnackBars();
-                              Future.delayed(Duration(milliseconds: 300))
-                                  .then((value) {
-                                Navigator.pop(context);
-                              });
-                            },
-                            style: ButtonStyle(
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                  Colors.black),
-                            ),
-                            child: Container(
-                              child: Row(
-                                children: const [Text('VOLTAR')],
+                          Container(
+                            padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
+                            height: 30,
+                            child: const TextField(
+                              style: TextStyle(color: Colors.white),
+                              decoration: InputDecoration(
+                                contentPadding:
+                                    EdgeInsets.fromLTRB(12, 0, 12, 0),
+                                hintText: 'NOME: ',
+                                hintStyle: TextStyle(color: Colors.white),
+                                enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Color.fromRGBO(91, 91, 91, 1),
+                                        width: 1)),
+                                focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Color.fromRGBO(91, 91, 91, 1),
+                                        width: 1)),
                               ),
                             ),
                           ),
+                          Container(
+                            padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
+                            height: 30,
+                            child: const TextField(
+                              keyboardType: TextInputType.numberWithOptions(),
+                              style: TextStyle(color: Colors.white),
+                              decoration: InputDecoration(
+                                contentPadding:
+                                    EdgeInsets.fromLTRB(12, 0, 12, 0),
+                                hintText: 'VALOR: ',
+                                hintStyle: TextStyle(color: Colors.white),
+                                enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Color.fromRGBO(91, 91, 91, 1),
+                                        width: 1)),
+                                focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Color.fromRGBO(91, 91, 91, 1),
+                                        width: 1)),
+                              ),
+                            ),
+                          ),
+                          Container(
+                            padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
+                            height: 35,
+                            child: TextField(
+                              inputFormatters: [datemask],
+                              keyboardType: TextInputType.number,
+                              style: TextStyle(color: Colors.white),
+                              decoration: InputDecoration(
+                                contentPadding:
+                                    EdgeInsets.fromLTRB(12, 0, 12, 0),
+                                hintText: 'Data de Vencimento: ',
+                                hintStyle: TextStyle(color: Colors.white),
+                                enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Color.fromRGBO(91, 91, 91, 1),
+                                        width: 1)),
+                                focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Color.fromRGBO(91, 91, 91, 1),
+                                        width: 1)),
+                              ),
+                            ),
+                          ),
+                          Container(
+                            padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
+                            height: 30,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  if (data['status'] == true) {
+                                    data['status'] = false;
+                                    pgStatus = false;
+                                    docRef.update({'status': pgStatus});
+                                  } else {
+                                    data['status'] = true;
+                                    pgStatus = true;
+                                    docRef.update({'status': pgStatus});
+                                  }
+                                  attValores();
+                                });
+                              },
+                              style: ButtonStyle(
+                                backgroundColor: data['status']
+                                    ? MaterialStateProperty.all<Color>(
+                                        Colors.green)
+                                    : MaterialStateProperty.all<Color>(
+                                        Colors.red),
+                              ),
+                              child: Container(
+                                child: Row(
+                                  children: [
+                                    Text(data['status'] ? 'PAGO' : 'PENDENTE')
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          Container(
+                            padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
+                            margin: EdgeInsets.only(bottom: 20),
+                            height: 30,
+                            child: TextField(
+                              style: TextStyle(color: Colors.white),
+                              decoration: InputDecoration(
+                                contentPadding:
+                                    EdgeInsets.fromLTRB(12, 0, 12, 0),
+                                hintText: 'OBSERVAÇÕES: ',
+                                hintStyle: TextStyle(color: Colors.white),
+                                enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Color.fromRGBO(91, 91, 91, 1),
+                                        width: 1)),
+                                focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Color.fromRGBO(91, 91, 91, 1),
+                                        width: 1)),
+                              ),
+                            ),
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              ElevatedButton(
+                                onPressed: () {
+                                  docRef.update({
+                                    'id': id.text,
+                                    'nome': nome.text,
+                                    'valor': valor.text,
+                                    'dVencimento': dVencimento.text,
+                                    'dPagamento': dPagamento.text,
+                                    'observacoes': observacoes.text,
+                                    'status': pgStatus,
+                                  });
+                                  ScaffoldMessenger.of(context)
+                                      .clearSnackBars();
+                                  Future.delayed(Duration(milliseconds: 300))
+                                      .then((value) {
+                                    Navigator.pop(context);
+                                  });
+                                },
+                                style: ButtonStyle(
+                                  backgroundColor:
+                                      MaterialStateProperty.all<Color>(
+                                          Colors.black),
+                                ),
+                                child: Container(
+                                  child: Row(
+                                    children: const [Text('CONFIRMAR')],
+                                  ),
+                                ),
+                              ),
+                              ElevatedButton(
+                                onPressed: () {
+                                  ScaffoldMessenger.of(context)
+                                      .clearSnackBars();
+                                  Future.delayed(Duration(milliseconds: 300))
+                                      .then((value) {
+                                    Navigator.pop(context);
+                                  });
+                                },
+                                style: ButtonStyle(
+                                  backgroundColor:
+                                      MaterialStateProperty.all<Color>(
+                                          Colors.black),
+                                ),
+                                child: Container(
+                                  child: Row(
+                                    children: const [Text('VOLTAR')],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
                         ],
-                      )
-                    ],
-                  )),
-            ));
+                      )),
+                ));
+      });
+    });
   }
 
   void addDespesa() {
@@ -513,6 +607,7 @@ class _DespesasPageState extends State<DespesasPage> {
                           padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
                           height: 30,
                           child: TextField(
+                            keyboardType: TextInputType.numberWithOptions(),
                             controller: valor,
                             style: TextStyle(color: Colors.white),
                             decoration: InputDecoration(
@@ -555,24 +650,31 @@ class _DespesasPageState extends State<DespesasPage> {
                         ),
                         Container(
                           padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
-                          height: 35,
-                          child: TextField(
-                            controller: dPagamento,
-                            inputFormatters: [datemask],
-                            keyboardType: TextInputType.number,
-                            style: TextStyle(color: Colors.white),
-                            decoration: InputDecoration(
-                              contentPadding: EdgeInsets.fromLTRB(12, 0, 12, 0),
-                              hintText: 'Data de Pagamento: ',
-                              hintStyle: TextStyle(color: Colors.white),
-                              enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: Color.fromRGBO(91, 91, 91, 1),
-                                      width: 1)),
-                              focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: Color.fromRGBO(91, 91, 91, 1),
-                                      width: 1)),
+                          height: 30,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                if (pgStatus == true) {
+                                  pgStatus = false;
+                                } else {
+                                  pgStatus = true;
+                                }
+                                attValores();
+                              });
+                            },
+                            style: ButtonStyle(
+                              backgroundColor: pgStatus
+                                  ? MaterialStateProperty.all<Color>(
+                                      Colors.green)
+                                  : MaterialStateProperty.all<Color>(
+                                      Colors.red),
+                            ),
+                            child: Container(
+                              child: Row(
+                                children: [
+                                  Text(pgStatus ? 'PAGO' : 'PENDENTE')
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -626,21 +728,14 @@ class _DespesasPageState extends State<DespesasPage> {
                                         nome: nome.text,
                                         valor: int.parse(valor.text),
                                         dVencimento: dVencimento.text,
-                                        dPagamento: dPagamento.text,
-                                        pago: false,
+                                        pago: pgStatus,
                                         observacoes: observacoes.text);
-                                    despesas.add(newDespesa);
-                                    count = despesas.length;
-                                    pagos = 0;
-                                    total = 0;
-                                    for (Despesas despesa in despesas) {
-                                      total += despesa.valor;
-                                      if (despesa.pago == true) {
-                                        pagos += despesa.valor;
-                                      }
-                                    }
-                                    despesasRepository
-                                        .saveDespesasList(despesas);
+                                    FirebaseFirestore.instance
+                                        .collection('despesas')
+                                        .doc(id.text)
+                                        .set(newDespesa.toJson());
+
+                                    attValores();
                                   }
                                 });
                                 ScaffoldMessenger.of(context).clearSnackBars();
@@ -687,36 +782,63 @@ class _DespesasPageState extends State<DespesasPage> {
     });
   }
 
-  void onDelete(Despesas despesa) {
-    Despesas offDelete = despesa;
-    int offDeletePos = despesas.indexOf(despesa);
-    print(despesa.nome);
+  void attValores() {
     setState(() {
-      despesas.remove(despesa);
-      count = despesas.length;
-      pagos -= despesa.valor;
-      total -= offDelete.valor;
-      despesasRepository.saveDespesasList(despesas);
-    });
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('O aluno(a): ${despesa.nome} foi removida com sucesso!',
-            style: const TextStyle(color: Colors.white)),
-        action: SnackBarAction(
-          label: 'Desfazer',
-          onPressed: () {
+      setState(() {
+        pagamento = 0;
+        recebido = 0;
+        FirebaseFirestore fi = FirebaseFirestore.instance;
+        fi.collection('despesas').get().then(
+          (value) {
             setState(() {
-              despesas.insert(offDeletePos, offDelete);
-              pagos += offDelete.valor;
-              total += offDelete.valor;
-              count = despesas.length;
-              despesasRepository.saveDespesasList(despesas);
+              count = value.size;
             });
+            print(count);
           },
+        );
+      });
+      setState(() {
+        FirebaseFirestore fi = FirebaseFirestore.instance;
+        fi
+            .collection('despesas')
+            .get()
+            .then((snap) => snap.docs.forEach((element) {
+                  print(element['valor'].toString());
+                  pagamento += int.parse(element['valor'].toString());
+                }));
+        print(pagamento);
+      });
+      setState(() {
+        FirebaseFirestore fi = FirebaseFirestore.instance;
+        fi
+            .collection('despesas')
+            .get()
+            .then((snap) => snap.docs.forEach((element) {
+                  print(element['status']);
+                  if (element['status'] == true) {
+                    recebido += int.parse(element['valor'].toString());
+                  }
+                }));
+        print(recebido);
+      });
+    });
+  }
+
+  void onDelete(String despesa) {
+    setState(() {
+      FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
+      final docRef = firebaseFirestore.collection('despesas').doc(despesa);
+
+      docRef.delete();
+      attValores();
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('A despesa: ${despesa} foi removida com sucesso!',
+              style: const TextStyle(color: Colors.white)),
+          duration: Duration(seconds: 5),
         ),
-        duration: Duration(seconds: 5),
-      ),
-    );
+      );
+    });
   }
 }

@@ -1,11 +1,15 @@
 import 'dart:math';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:financas/pages/mainMenu.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:vibration/vibration.dart';
 import '../models/alunos.dart';
 import '../repository/repository.dart';
 import '../widgets/diaria.dart';
+
+bool pgStatus = false;
 
 class DiariasPage extends StatefulWidget {
   const DiariasPage({Key? key}) : super(key: key);
@@ -15,7 +19,9 @@ class DiariasPage extends StatefulWidget {
 }
 
 class _DiariasPageState extends State<DiariasPage> {
-  final DiariasRepository diariasRepository = DiariasRepository();
+  final CollectionReference _diariasRef =
+      FirebaseFirestore.instance.collection('diarias');
+
   final MaskTextInputFormatter datemask =
       MaskTextInputFormatter(mask: "##/##/####");
   final MaskTextInputFormatter telmask =
@@ -27,18 +33,7 @@ class _DiariasPageState extends State<DiariasPage> {
   @override
   void initState() {
     super.initState();
-    diariasRepository.getDiarias().then((value) {
-      setState(() {
-        diarias = value;
-        count = diarias.length;
-        for (var diaria in diarias) {
-          pagamento += int.parse(diaria.valor);
-          if (diaria.pago == true) {
-            recebido += int.parse(diaria.valor);
-          }
-        }
-      });
-    });
+    attValores();
   }
 
   @override
@@ -99,17 +94,124 @@ class _DiariasPageState extends State<DiariasPage> {
                             color: Color.fromRGBO(38, 38, 38, 1),
                             borderRadius: BorderRadius.circular(5)),
                         child: Flexible(
-                            child: ListView(
-                          shrinkWrap: true,
-                          children: [
-                            //para cada diária
-                            for (Diarias diaria in diarias)
-                              ItemDiaria(
-                                  diaria: diaria,
-                                  editDiaria: editDiaria,
-                                  onDelete: onDelete),
-                          ],
-                        )),
+                          child: StreamBuilder(
+                            stream: _diariasRef.snapshots(),
+                            builder: (context,
+                                AsyncSnapshot<QuerySnapshot> snapshot) {
+                              if (snapshot.hasData) {
+                                return Container(
+                                    width:
+                                        MediaQuery.of(context).size.width * 0.9,
+                                    child: ListView.builder(
+                                        itemCount: snapshot.data!.docs.length,
+                                        itemBuilder: (context, index) {
+                                          final DocumentSnapshot
+                                              documentSnapshot =
+                                              snapshot.data!.docs[index];
+                                          return Container(
+                                            margin: EdgeInsets.only(bottom: 5),
+                                            child: Slidable(
+                                              actionPane:
+                                                  SlidableStrechActionPane(),
+                                              secondaryActions: [
+                                                IconSlideAction(
+                                                  color: Colors.red,
+                                                  icon: Icons.delete,
+                                                  caption: 'Deletar',
+                                                  onTap: () {
+                                                    onDelete(documentSnapshot.id
+                                                        .toString());
+                                                  },
+                                                ),
+                                              ],
+                                              child: ElevatedButton(
+                                                style: ButtonStyle(
+                                                  backgroundColor:
+                                                      MaterialStateProperty.all(
+                                                          Color.fromRGBO(
+                                                              61, 61, 61, 1)),
+                                                ),
+                                                onPressed: () {
+                                                  editDiaria(documentSnapshot.id
+                                                      .toString());
+                                                },
+                                                child: Container(
+                                                  alignment: Alignment.topLeft,
+                                                  padding: EdgeInsets.all(5),
+                                                  child: Column(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment.start,
+                                                    children: [
+                                                      Row(
+                                                        children: [
+                                                          Text(
+                                                            'Data: ${documentSnapshot['dPagamento']}',
+                                                            textAlign:
+                                                                TextAlign.start,
+                                                            style: TextStyle(
+                                                                color: Colors
+                                                                    .white,
+                                                                fontSize: 14,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w300),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      Row(
+                                                        children: [
+                                                          Text(
+                                                            '${documentSnapshot['nome']}',
+                                                            style: TextStyle(
+                                                                color: Colors
+                                                                    .white,
+                                                                fontSize: 16,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      Row(
+                                                        children: [
+                                                          Text(
+                                                            'R\$ ${documentSnapshot['valor']} - Status: ${documentSnapshot['status'] ? 'Pago' : 'Pendente'}',
+                                                            textAlign:
+                                                                TextAlign.start,
+                                                            style: TextStyle(
+                                                                color: documentSnapshot[
+                                                                        'status']
+                                                                    ? Colors
+                                                                        .green
+                                                                    : Colors
+                                                                        .red,
+                                                                fontSize: 14,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w300),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        }));
+                              } else if (snapshot.hasError) {
+                                print('erro: ${snapshot.error.toString()}');
+                                return Center(
+                                  child: Text(
+                                      'error: ${snapshot.error.toString()}'),
+                                );
+                              }
+                              return Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            },
+                          ),
+                        ),
                       ),
                       Container(
                         padding: EdgeInsets.all(10),
@@ -230,233 +332,245 @@ class _DiariasPageState extends State<DiariasPage> {
     );
   }
 
-  void editDiaria(Diarias diaria) {
+  void editDiaria(String diaria) {
+    FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
+
     final TextEditingController id = TextEditingController();
     final TextEditingController nome = TextEditingController();
     final TextEditingController dPagamento = TextEditingController();
     final TextEditingController valor = TextEditingController();
     final TextEditingController obs = TextEditingController();
     setState(() {
-      id.text = diaria.id.toString();
-      nome.text = diaria.nome;
-      dPagamento.text = diaria.dPagamento;
-      valor.text = diaria.valor.toString();
-      obs.text = diaria.observacoes;
-      showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-                backgroundColor: Color.fromRGBO(61, 61, 61, 1),
-                content: Container(
-                    color: Color.fromRGBO(61, 61, 61, 1),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text('DADOS DO PAGAMENTO',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold)),
-                        Container(
-                          padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
-                          height: 30,
-                          child: TextField(
-                            controller: id,
-                            style: TextStyle(color: Colors.white),
-                            decoration: InputDecoration(
-                              contentPadding: EdgeInsets.fromLTRB(12, 0, 12, 0),
-                              hintText: 'ID: ',
-                              hintStyle: TextStyle(color: Colors.white),
-                              enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: Color.fromRGBO(91, 91, 91, 1),
-                                      width: 1)),
-                              focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: Color.fromRGBO(91, 91, 91, 1),
-                                      width: 1)),
-                            ),
-                          ),
-                        ),
-                        Container(
-                          padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
-                          height: 30,
-                          child: TextField(
-                            controller: nome,
-                            style: TextStyle(color: Colors.white),
-                            decoration: InputDecoration(
-                              contentPadding: EdgeInsets.fromLTRB(12, 0, 12, 0),
-                              hintText: 'NOME: ',
-                              hintStyle: TextStyle(color: Colors.white),
-                              enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: Color.fromRGBO(91, 91, 91, 1),
-                                      width: 1)),
-                              focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: Color.fromRGBO(91, 91, 91, 1),
-                                      width: 1)),
-                            ),
-                          ),
-                        ),
-                        Container(
-                          padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
-                          height: 30,
-                          child: TextField(
-                            controller: dPagamento,
-                            inputFormatters: [datemask],
-                            keyboardType: TextInputType.number,
-                            style: TextStyle(color: Colors.white),
-                            decoration: InputDecoration(
-                              contentPadding: EdgeInsets.fromLTRB(12, 0, 12, 0),
-                              hintText: 'DATA DE PAGAMENTO: ',
-                              hintStyle: TextStyle(color: Colors.white),
-                              enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: Color.fromRGBO(91, 91, 91, 1),
-                                      width: 1)),
-                              focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: Color.fromRGBO(91, 91, 91, 1),
-                                      width: 1)),
-                            ),
-                          ),
-                        ),
-                        Container(
-                          padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
-                          height: 30,
-                          child: TextField(
-                            controller: valor,
-                            style: TextStyle(color: Colors.white),
-                            decoration: InputDecoration(
-                              contentPadding: EdgeInsets.fromLTRB(12, 0, 12, 0),
-                              hintText: 'VALOR: ',
-                              hintStyle: TextStyle(color: Colors.white),
-                              enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: Color.fromRGBO(91, 91, 91, 1),
-                                      width: 1)),
-                              focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: Color.fromRGBO(91, 91, 91, 1),
-                                      width: 1)),
-                            ),
-                          ),
-                        ),
-                        Container(
-                          padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
-                          height: 30,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                if (diaria.pago == true) {
-                                  diaria.pago = false;
-                                  recebido -= int.parse(diaria.valor);
-                                  diariasRepository.saveDiariaList(diarias);
-                                } else {
-                                  diaria.pago = true;
-                                  recebido += int.parse(diaria.valor);
-                                  diariasRepository.saveDiariaList(diarias);
-                                }
-                              });
-                            },
-                            style: ButtonStyle(
-                              backgroundColor: diaria.pago
-                                  ? MaterialStateProperty.all<Color>(
-                                      Colors.green)
-                                  : MaterialStateProperty.all<Color>(
-                                      Colors.red),
-                            ),
-                            child: Container(
-                              child: Row(
-                                children: [
-                                  Text(diaria.pago ? 'PAGO' : 'PENDENTE')
-                                ],
+      final docRef = firebaseFirestore.collection('diarias').doc(diaria);
+      docRef.get().then((DocumentSnapshot diaria) {
+        final data = diaria.data() as Map<String, dynamic>;
+        id.text = data['id'].toString();
+        nome.text = data['nome'];
+        dPagamento.text = data['dPagamento'];
+        valor.text = data['valor'].toString();
+        obs.text = data['observacoes'];
+
+        showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+                  backgroundColor: Color.fromRGBO(61, 61, 61, 1),
+                  content: Container(
+                      color: Color.fromRGBO(61, 61, 61, 1),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text('DADOS DO PAGAMENTO',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold)),
+                          Container(
+                            padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
+                            height: 30,
+                            child: TextField(
+                              controller: id,
+                              style: TextStyle(color: Colors.white),
+                              decoration: InputDecoration(
+                                contentPadding:
+                                    EdgeInsets.fromLTRB(12, 0, 12, 0),
+                                hintText: 'ID: ',
+                                hintStyle: TextStyle(color: Colors.white),
+                                enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Color.fromRGBO(91, 91, 91, 1),
+                                        width: 1)),
+                                focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Color.fromRGBO(91, 91, 91, 1),
+                                        width: 1)),
                               ),
                             ),
                           ),
-                        ),
-                        Container(
-                          padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
-                          margin: EdgeInsets.only(bottom: 20),
-                          height: 30,
-                          child: TextField(
-                            controller: obs,
-                            style: TextStyle(color: Colors.white),
-                            decoration: InputDecoration(
-                              contentPadding: EdgeInsets.fromLTRB(12, 0, 12, 0),
-                              hintText: 'OBSERVAÇÕES: ',
-                              hintStyle: TextStyle(color: Colors.white),
-                              enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: Color.fromRGBO(91, 91, 91, 1),
-                                      width: 1)),
-                              focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: Color.fromRGBO(91, 91, 91, 1),
-                                      width: 1)),
+                          Container(
+                            padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
+                            height: 30,
+                            child: TextField(
+                              controller: nome,
+                              style: TextStyle(color: Colors.white),
+                              decoration: InputDecoration(
+                                contentPadding:
+                                    EdgeInsets.fromLTRB(12, 0, 12, 0),
+                                hintText: 'NOME: ',
+                                hintStyle: TextStyle(color: Colors.white),
+                                enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Color.fromRGBO(91, 91, 91, 1),
+                                        width: 1)),
+                                focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Color.fromRGBO(91, 91, 91, 1),
+                                        width: 1)),
+                              ),
                             ),
                           ),
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            ElevatedButton(
+                          Container(
+                            padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
+                            height: 30,
+                            child: TextField(
+                              controller: dPagamento,
+                              inputFormatters: [datemask],
+                              keyboardType: TextInputType.number,
+                              style: TextStyle(color: Colors.white),
+                              decoration: InputDecoration(
+                                contentPadding:
+                                    EdgeInsets.fromLTRB(12, 0, 12, 0),
+                                hintText: 'DATA DE PAGAMENTO: ',
+                                hintStyle: TextStyle(color: Colors.white),
+                                enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Color.fromRGBO(91, 91, 91, 1),
+                                        width: 1)),
+                                focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Color.fromRGBO(91, 91, 91, 1),
+                                        width: 1)),
+                              ),
+                            ),
+                          ),
+                          Container(
+                            padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
+                            height: 30,
+                            child: TextField(
+                              keyboardType: TextInputType.numberWithOptions(),
+                              controller: valor,
+                              style: TextStyle(color: Colors.white),
+                              decoration: InputDecoration(
+                                contentPadding:
+                                    EdgeInsets.fromLTRB(12, 0, 12, 0),
+                                hintText: 'VALOR: ',
+                                hintStyle: TextStyle(color: Colors.white),
+                                enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Color.fromRGBO(91, 91, 91, 1),
+                                        width: 1)),
+                                focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Color.fromRGBO(91, 91, 91, 1),
+                                        width: 1)),
+                              ),
+                            ),
+                          ),
+                          Container(
+                            padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
+                            height: 30,
+                            child: ElevatedButton(
                               onPressed: () {
                                 setState(() {
-                                  diaria.nome = nome.text;
-                                  diaria.dPagamento = dPagamento.text;
-                                  pagamento -= int.parse(diaria.valor);
-                                  diaria.valor = valor.text;
-                                  diaria.observacoes = obs.text;
-                                  pagamento += int.parse(diaria.valor);
-                                  diariasRepository.saveDiariaList(diarias);
-                                  recebido = 0;
-                                  for (Diarias diaria in diarias) {
-                                    if (diaria.pago == true) {
-                                      recebido += int.parse(diaria.valor);
-                                    }
+                                  if (data['pago'] == true) {
+                                    data['pago'] = false;
+                                    pgStatus = false;
+                                    docRef.update({'status': pgStatus});
+                                  } else {
+                                    data['pago'] = true;
+                                    pgStatus = true;
+                                    docRef.update({'status': pgStatus});
                                   }
-                                });
-                                ScaffoldMessenger.of(context).clearSnackBars();
-                                Future.delayed(Duration(milliseconds: 300))
-                                    .then((value) {
-                                  Navigator.pop(context);
+                                  attValores();
                                 });
                               },
                               style: ButtonStyle(
-                                backgroundColor:
-                                    MaterialStateProperty.all<Color>(
-                                        Colors.black),
+                                backgroundColor: pgStatus
+                                    ? MaterialStateProperty.all<Color>(
+                                        Colors.green)
+                                    : MaterialStateProperty.all<Color>(
+                                        Colors.red),
                               ),
                               child: Container(
                                 child: Row(
-                                  children: const [Text('CONFIRMAR')],
+                                  children: [
+                                    Text(pgStatus ? 'PAGO' : 'PENDENTE')
+                                  ],
                                 ),
                               ),
                             ),
-                            ElevatedButton(
-                              onPressed: () {
-                                ScaffoldMessenger.of(context).clearSnackBars();
-                                Future.delayed(Duration(milliseconds: 300))
-                                    .then((value) {
-                                  Navigator.pop(context);
-                                });
-                              },
-                              style: ButtonStyle(
-                                backgroundColor:
-                                    MaterialStateProperty.all<Color>(
-                                        Colors.black),
-                              ),
-                              child: Container(
-                                child: Row(
-                                  children: const [Text('VOLTAR')],
-                                ),
+                          ),
+                          Container(
+                            padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
+                            margin: EdgeInsets.only(bottom: 20),
+                            height: 30,
+                            child: TextField(
+                              controller: obs,
+                              style: TextStyle(color: Colors.white),
+                              decoration: InputDecoration(
+                                contentPadding:
+                                    EdgeInsets.fromLTRB(12, 0, 12, 0),
+                                hintText: 'OBSERVAÇÕES: ',
+                                hintStyle: TextStyle(color: Colors.white),
+                                enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Color.fromRGBO(91, 91, 91, 1),
+                                        width: 1)),
+                                focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Color.fromRGBO(91, 91, 91, 1),
+                                        width: 1)),
                               ),
                             ),
-                          ],
-                        )
-                      ],
-                    )),
-              ));
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              ElevatedButton(
+                                onPressed: () {
+                                  setState(() {
+                                    docRef.update({
+                                      'dPagamento': dPagamento.text,
+                                      'id': id.text,
+                                      'nome': nome.text,
+                                      'observacoes': obs.text,
+                                      'status': pgStatus,
+                                      'valor': valor.text,
+                                    });
+                                    attValores();
+                                  });
+                                  ScaffoldMessenger.of(context)
+                                      .clearSnackBars();
+                                  Future.delayed(Duration(milliseconds: 300))
+                                      .then((value) {
+                                    Navigator.pop(context);
+                                  });
+                                },
+                                style: ButtonStyle(
+                                  backgroundColor:
+                                      MaterialStateProperty.all<Color>(
+                                          Colors.black),
+                                ),
+                                child: Container(
+                                  child: Row(
+                                    children: const [Text('CONFIRMAR')],
+                                  ),
+                                ),
+                              ),
+                              ElevatedButton(
+                                onPressed: () {
+                                  ScaffoldMessenger.of(context)
+                                      .clearSnackBars();
+                                  Future.delayed(Duration(milliseconds: 300))
+                                      .then((value) {
+                                    Navigator.pop(context);
+                                  });
+                                },
+                                style: ButtonStyle(
+                                  backgroundColor:
+                                      MaterialStateProperty.all<Color>(
+                                          Colors.black),
+                                ),
+                                child: Container(
+                                  child: Row(
+                                    children: const [Text('VOLTAR')],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                        ],
+                      )),
+                ));
+      });
     });
   }
 
@@ -556,6 +670,7 @@ class _DiariasPageState extends State<DiariasPage> {
                           padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
                           height: 30,
                           child: TextField(
+                            keyboardType: TextInputType.numberWithOptions(),
                             controller: valor,
                             style: TextStyle(color: Colors.white),
                             decoration: InputDecoration(
@@ -626,16 +741,12 @@ class _DiariasPageState extends State<DiariasPage> {
                                       pago: true,
                                       observacoes: obs.text,
                                     );
-                                    diarias.add(newDiaria);
-                                    count = diarias.length;
-                                    pagamento += int.parse(newDiaria.valor);
-                                    print(diarias);
-                                    diariasRepository.saveDiariaList(diarias);
-                                    for (Diarias diaria in diarias) {
-                                      if (diaria.pago == true) {
-                                        recebido += int.parse(diaria.valor);
-                                      }
-                                    }
+                                    FirebaseFirestore.instance
+                                        .collection('diarias')
+                                        .doc(id.text)
+                                        .set(newDiaria.toJson());
+                                    attValores();
+
                                     ScaffoldMessenger.of(context)
                                         .clearSnackBars();
                                     Future.delayed(Duration(milliseconds: 300))
@@ -683,34 +794,63 @@ class _DiariasPageState extends State<DiariasPage> {
     });
   }
 
-  void onDelete(Diarias diaria) {
-    Diarias offDelete = diaria;
-    int offDeletePos = diarias.indexOf(diaria);
-    print(diaria.nome);
+  void attValores() {
     setState(() {
-      diarias.remove(diaria);
-      count = diarias.length;
-      pagamento -= int.parse(diaria.valor);
-      diariasRepository.saveDiariaList(diarias);
-    });
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('O aluno(a): ${diaria.nome} foi removida com sucesso!',
-            style: const TextStyle(color: Colors.white)),
-        action: SnackBarAction(
-          label: 'Desfazer',
-          onPressed: () {
+      setState(() {
+        pagamento = 0;
+        recebido = 0;
+        FirebaseFirestore fi = FirebaseFirestore.instance;
+        fi.collection('diarias').get().then(
+          (value) {
             setState(() {
-              diarias.insert(offDeletePos, offDelete);
-              pagamento += int.parse(offDelete.valor);
-              count = diarias.length;
-              diariasRepository.saveDiariaList(diarias);
+              count = value.size;
             });
+            print(count);
           },
+        );
+      });
+      setState(() {
+        FirebaseFirestore fi = FirebaseFirestore.instance;
+        fi
+            .collection('diarias')
+            .get()
+            .then((snap) => snap.docs.forEach((element) {
+                  print(element['valor'].toString());
+                  pagamento += int.parse(element['valor'].toString());
+                }));
+        print(pagamento);
+      });
+      setState(() {
+        FirebaseFirestore fi = FirebaseFirestore.instance;
+        fi
+            .collection('diarias')
+            .get()
+            .then((snap) => snap.docs.forEach((element) {
+                  print(element['status']);
+                  if (element['status'] == true) {
+                    recebido += int.parse(element['valor'].toString());
+                  }
+                }));
+        print(recebido);
+      });
+    });
+  }
+
+  void onDelete(String diaria) {
+    setState(() {
+      FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
+      final docRef = firebaseFirestore.collection('diarias').doc(diaria);
+
+      docRef.delete();
+      attValores();
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('O aluno(a): ${diaria} foi removido(a) com sucesso!',
+              style: const TextStyle(color: Colors.white)),
+          duration: Duration(seconds: 5),
         ),
-        duration: Duration(seconds: 5),
-      ),
-    );
+      );
+    });
   }
 }

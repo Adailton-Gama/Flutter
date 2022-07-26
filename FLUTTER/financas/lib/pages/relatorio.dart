@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:financas/pages/mainMenu.dart';
 import 'package:flutter/material.dart';
 
@@ -12,12 +13,6 @@ class RelatorioPage extends StatefulWidget {
 }
 
 class _RelatorioPageState extends State<RelatorioPage> {
-  final AlunoRepository alunoRepository = AlunoRepository();
-  final DiariasRepository diariasRepository = DiariasRepository();
-  final DespesasRepository despesasRepository = DespesasRepository();
-  List<Alunos> alunos = [];
-  List<Diarias> diarias = [];
-  List<Despesas> despesas = [];
   int mensalidade = 0;
   int vdiaria = 0;
   int vdespesa = 0;
@@ -25,40 +20,7 @@ class _RelatorioPageState extends State<RelatorioPage> {
   @override
   void initState() {
     super.initState();
-    alunoRepository.getAlunos().then((value) {
-      setState(() {
-        alunos = value;
-        for (var aluno in alunos) {
-          if (aluno.pago == true) {
-            mensalidade += aluno.valor;
-          }
-        }
-      });
-      diariasRepository.getDiarias().then((value) {
-        setState(() {
-          diarias = value;
-          for (var diaria in diarias) {
-            if (diaria.pago == true) {
-              vdiaria += int.parse(diaria.valor);
-            }
-          }
-        });
-
-        despesasRepository.getDespesas().then((value) {
-          setState(() {
-            despesas = value;
-            for (var despesa in despesas) {
-              if (despesa.pago == true) {
-                vdespesa += despesa.valor;
-              }
-            }
-            liquido = mensalidade + vdiaria;
-            liquido -= vdespesa;
-            print(liquido);
-          });
-        });
-      });
-    });
+    attValores();
   }
 
   @override
@@ -298,5 +260,57 @@ class _RelatorioPageState extends State<RelatorioPage> {
         ),
       ),
     );
+  }
+
+  void attValores() {
+    mensalidade = 0;
+    vdiaria = 0;
+    vdespesa = 0;
+    liquido = 0;
+    setState(() {
+      FirebaseFirestore despesa = FirebaseFirestore.instance;
+      despesa
+          .collection('despesas')
+          .get()
+          .then((snap) => snap.docs.forEach((element) {
+                print(element['status']);
+                if (element['status'] == true) {
+                  setState(() {
+                    vdespesa += int.parse(element['valor'].toString());
+                  });
+                }
+              }));
+      print(vdespesa);
+
+      FirebaseFirestore mensal = FirebaseFirestore.instance;
+      mensal
+          .collection('alunos')
+          .get()
+          .then((snap) => snap.docs.forEach((element) {
+                print(element['status']);
+                if (element['status'] == true) {
+                  setState(() {
+                    mensalidade += int.parse(element['valor'].toString());
+                  });
+                }
+              }));
+      print(mensalidade);
+
+      FirebaseFirestore diarias = FirebaseFirestore.instance;
+      diarias
+          .collection('diarias')
+          .get()
+          .then((snap) => snap.docs.forEach((element) {
+                print(element['status']);
+                if (element['status'] == true) {
+                  setState(() {
+                    vdiaria += int.parse(element['valor'].toString());
+                  });
+                }
+              }));
+      print(vdiaria);
+      liquido = mensalidade + vdiaria;
+      liquido = liquido - vdespesa;
+    });
   }
 }
