@@ -157,6 +157,9 @@ class _MainMenuState extends State<MainMenu> {
                               ),
                             ],
                           ),
+                          SizedBox(
+                            height: 10,
+                          ),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
