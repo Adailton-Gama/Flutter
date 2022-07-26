@@ -90,136 +90,121 @@ class _GerirAlunosState extends State<GerirAlunos> {
                           decoration: BoxDecoration(
                               color: Color.fromRGBO(38, 38, 38, 1),
                               borderRadius: BorderRadius.circular(5)),
-                          child: Flexible(
-                              child: StreamBuilder(
-                                  stream: _alunosref.snapshots(),
-                                  builder: (context,
-                                      AsyncSnapshot<QuerySnapshot> snapshot) {
-                                    if (snapshot.hasData) {
-                                      return Container(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.9,
-                                        child: ListView.builder(
-                                            itemCount:
-                                                snapshot.data!.docs.length,
-                                            itemBuilder: (context, index) {
-                                              final DocumentSnapshot
-                                                  documentSnapshot =
-                                                  snapshot.data!.docs[index];
+                          child: StreamBuilder(
+                              stream: _alunosref.snapshots(),
+                              builder: (context,
+                                  AsyncSnapshot<QuerySnapshot> snapshot) {
+                                if (snapshot.hasData) {
+                                  return Container(
+                                    width:
+                                        MediaQuery.of(context).size.width * 0.9,
+                                    child: ListView.builder(
+                                        itemCount: snapshot.data!.docs.length,
+                                        itemBuilder: (context, index) {
+                                          final DocumentSnapshot
+                                              documentSnapshot =
+                                              snapshot.data!.docs[index];
 
-                                              return Container(
-                                                margin:
-                                                    EdgeInsets.only(bottom: 5),
-                                                child: ElevatedButton(
-                                                  style: ButtonStyle(
-                                                    backgroundColor:
-                                                        MaterialStateProperty
-                                                            .all(Color.fromRGBO(
-                                                                61, 61, 61, 1)),
+                                          return Container(
+                                            margin: EdgeInsets.only(bottom: 5),
+                                            child: ElevatedButton(
+                                              style: ButtonStyle(
+                                                backgroundColor:
+                                                    MaterialStateProperty.all(
+                                                        Color.fromRGBO(
+                                                            61, 61, 61, 1)),
+                                              ),
+                                              onPressed: () {
+                                                EditAluno(documentSnapshot.id
+                                                    .toString());
+                                              },
+                                              child: Slidable(
+                                                actionPane:
+                                                    SlidableScrollActionPane(),
+                                                secondaryActions: [
+                                                  IconSlideAction(
+                                                    color: Colors.red,
+                                                    icon: Icons.delete,
+                                                    caption: 'Deletar',
+                                                    onTap: () {
+                                                      onDelete(documentSnapshot
+                                                          .id
+                                                          .toString());
+                                                    },
                                                   ),
-                                                  onPressed: () {
-                                                    EditAluno(documentSnapshot
-                                                        .id
-                                                        .toString());
-                                                  },
-                                                  child: Slidable(
-                                                    actionPane:
-                                                        SlidableScrollActionPane(),
-                                                    secondaryActions: [
-                                                      IconSlideAction(
-                                                        color: Colors.red,
-                                                        icon: Icons.delete,
-                                                        caption: 'Deletar',
-                                                        onTap: () {
-                                                          onDelete(
-                                                              documentSnapshot
-                                                                  .id
-                                                                  .toString());
-                                                        },
-                                                      ),
-                                                    ],
-                                                    child: Container(
-                                                      alignment:
-                                                          Alignment.topLeft,
-                                                      padding:
-                                                          EdgeInsets.all(5),
-                                                      child: Column(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .start,
+                                                ],
+                                                child: Container(
+                                                  alignment: Alignment.topLeft,
+                                                  padding: EdgeInsets.all(5),
+                                                  child: Column(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment.start,
+                                                    children: [
+                                                      Row(
                                                         children: [
-                                                          Row(
-                                                            children: [
-                                                              Text(
-                                                                'Plano: ${documentSnapshot['plano']}',
-                                                                textAlign:
-                                                                    TextAlign
-                                                                        .start,
-                                                                style: TextStyle(
-                                                                    color: Colors
-                                                                        .white,
-                                                                    fontSize:
-                                                                        14,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .w300),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          Row(
-                                                            children: [
-                                                              Text(
-                                                                '${documentSnapshot['nome']}',
-                                                                style: TextStyle(
-                                                                    color: Colors
-                                                                        .white,
-                                                                    fontSize:
-                                                                        16,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .bold),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          Row(
-                                                            children: [
-                                                              Text(
-                                                                '${documentSnapshot['telefone']}',
-                                                                textAlign:
-                                                                    TextAlign
-                                                                        .start,
-                                                                style: TextStyle(
-                                                                    color: Colors
-                                                                        .white,
-                                                                    fontSize:
-                                                                        14,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .w300),
-                                                              ),
-                                                            ],
+                                                          Text(
+                                                            'Plano: ${documentSnapshot['plano']}',
+                                                            textAlign:
+                                                                TextAlign.start,
+                                                            style: TextStyle(
+                                                                color: Colors
+                                                                    .white,
+                                                                fontSize: 14,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w300),
                                                           ),
                                                         ],
                                                       ),
-                                                    ),
+                                                      Row(
+                                                        children: [
+                                                          Text(
+                                                            '${documentSnapshot['nome']}',
+                                                            style: TextStyle(
+                                                                color: Colors
+                                                                    .white,
+                                                                fontSize: 16,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      Row(
+                                                        children: [
+                                                          Text(
+                                                            '${documentSnapshot['telefone']}',
+                                                            textAlign:
+                                                                TextAlign.start,
+                                                            style: TextStyle(
+                                                                color: Colors
+                                                                    .white,
+                                                                fontSize: 14,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w300),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ],
                                                   ),
                                                 ),
-                                              );
-                                            }),
-                                      );
-                                    } else if (snapshot.hasError) {
-                                      print(
-                                          'erro: ${snapshot.error.toString()}');
-                                      return Center(
-                                        child: Text(
-                                            'error: ${snapshot.error.toString()}'),
-                                      );
-                                    }
-                                    return Center(
-                                      child: CircularProgressIndicator(),
-                                    );
-                                  })),
+                                              ),
+                                            ),
+                                          );
+                                        }),
+                                  );
+                                } else if (snapshot.hasError) {
+                                  print('erro: ${snapshot.error.toString()}');
+                                  return Center(
+                                    child: Text(
+                                        'error: ${snapshot.error.toString()}'),
+                                  );
+                                }
+                                return Center(
+                                  child: CircularProgressIndicator(),
+                                );
+                              }),
                         ),
                         Container(
                           padding: EdgeInsets.all(10),

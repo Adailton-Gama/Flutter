@@ -91,15 +91,16 @@ class _MensalidadesState extends State<Mensalidades> {
                           decoration: BoxDecoration(
                               color: Color.fromRGBO(38, 38, 38, 1),
                               borderRadius: BorderRadius.circular(5)),
-                          child: Flexible(
-                              child: StreamBuilder(
+                          child: StreamBuilder(
                             stream: _alunosRef.snapshots(),
                             builder: (context,
                                 AsyncSnapshot<QuerySnapshot> snapshot) {
                               if (snapshot.hasData) {
                                 return Container(
                                   width:
-                                      MediaQuery.of(context).size.width * 0.9,
+                                      MediaQuery.of(context).size.width * 0.7,
+                                  height:
+                                      MediaQuery.of(context).size.height * 0.4,
                                   margin: EdgeInsets.only(bottom: 5),
                                   child: ListView.builder(
                                     itemCount: snapshot.data!.docs.length,
@@ -187,7 +188,7 @@ class _MensalidadesState extends State<Mensalidades> {
                                 child: CircularProgressIndicator(),
                               );
                             },
-                          )),
+                          ),
                         ),
                         Container(
                           padding: EdgeInsets.all(10),

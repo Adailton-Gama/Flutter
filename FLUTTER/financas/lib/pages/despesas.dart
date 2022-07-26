@@ -91,10 +91,9 @@ class _DespesasPageState extends State<DespesasPage> {
                         height: MediaQuery.of(context).size.height * 0.5,
                         padding: const EdgeInsets.all(5),
                         decoration: BoxDecoration(
-                            color: const Color.fromRGBO(61, 61, 61, 1),
+                            color: const Color.fromRGBO(38, 38, 38, 1),
                             borderRadius: BorderRadius.circular(5)),
-                        child: Flexible(
-                            child: StreamBuilder(
+                        child: StreamBuilder(
                           stream: _despesasRef.snapshots(),
                           builder:
                               (context, AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -198,7 +197,7 @@ class _DespesasPageState extends State<DespesasPage> {
                               child: CircularProgressIndicator(),
                             );
                           },
-                        )),
+                        ),
                       ),
                       Container(
                         padding: const EdgeInsets.all(10),

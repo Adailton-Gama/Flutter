@@ -93,124 +93,120 @@ class _DiariasPageState extends State<DiariasPage> {
                         decoration: BoxDecoration(
                             color: Color.fromRGBO(38, 38, 38, 1),
                             borderRadius: BorderRadius.circular(5)),
-                        child: Flexible(
-                          child: StreamBuilder(
-                            stream: _diariasRef.snapshots(),
-                            builder: (context,
-                                AsyncSnapshot<QuerySnapshot> snapshot) {
-                              if (snapshot.hasData) {
-                                return Container(
-                                    width:
-                                        MediaQuery.of(context).size.width * 0.9,
-                                    child: ListView.builder(
-                                        itemCount: snapshot.data!.docs.length,
-                                        itemBuilder: (context, index) {
-                                          final DocumentSnapshot
-                                              documentSnapshot =
-                                              snapshot.data!.docs[index];
-                                          return Container(
-                                            margin: EdgeInsets.only(bottom: 5),
-                                            child: Slidable(
-                                              actionPane:
-                                                  SlidableStrechActionPane(),
-                                              secondaryActions: [
-                                                IconSlideAction(
-                                                  color: Colors.red,
-                                                  icon: Icons.delete,
-                                                  caption: 'Deletar',
-                                                  onTap: () {
-                                                    onDelete(documentSnapshot.id
-                                                        .toString());
-                                                  },
-                                                ),
-                                              ],
-                                              child: ElevatedButton(
-                                                style: ButtonStyle(
-                                                  backgroundColor:
-                                                      MaterialStateProperty.all(
-                                                          Color.fromRGBO(
-                                                              61, 61, 61, 1)),
-                                                ),
-                                                onPressed: () {
-                                                  editDiaria(documentSnapshot.id
+                        child: StreamBuilder(
+                          stream: _diariasRef.snapshots(),
+                          builder:
+                              (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                            if (snapshot.hasData) {
+                              return Container(
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.9,
+                                  child: ListView.builder(
+                                      itemCount: snapshot.data!.docs.length,
+                                      itemBuilder: (context, index) {
+                                        final DocumentSnapshot
+                                            documentSnapshot =
+                                            snapshot.data!.docs[index];
+                                        return Container(
+                                          margin: EdgeInsets.only(bottom: 5),
+                                          child: Slidable(
+                                            actionPane:
+                                                SlidableStrechActionPane(),
+                                            secondaryActions: [
+                                              IconSlideAction(
+                                                color: Colors.red,
+                                                icon: Icons.delete,
+                                                caption: 'Deletar',
+                                                onTap: () {
+                                                  onDelete(documentSnapshot.id
                                                       .toString());
                                                 },
-                                                child: Container(
-                                                  alignment: Alignment.topLeft,
-                                                  padding: EdgeInsets.all(5),
-                                                  child: Column(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment.start,
-                                                    children: [
-                                                      Row(
-                                                        children: [
-                                                          Text(
-                                                            'Data: ${documentSnapshot['dPagamento']}',
-                                                            textAlign:
-                                                                TextAlign.start,
-                                                            style: TextStyle(
-                                                                color: Colors
-                                                                    .white,
-                                                                fontSize: 14,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w300),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      Row(
-                                                        children: [
-                                                          Text(
-                                                            '${documentSnapshot['nome']}',
-                                                            style: TextStyle(
-                                                                color: Colors
-                                                                    .white,
-                                                                fontSize: 16,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      Row(
-                                                        children: [
-                                                          Text(
-                                                            'R\$ ${documentSnapshot['valor']} - Status: ${documentSnapshot['status'] ? 'Pago' : 'Pendente'}',
-                                                            textAlign:
-                                                                TextAlign.start,
-                                                            style: TextStyle(
-                                                                color: documentSnapshot[
-                                                                        'status']
-                                                                    ? Colors
-                                                                        .green
-                                                                    : Colors
-                                                                        .red,
-                                                                fontSize: 14,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w300),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ],
-                                                  ),
+                                              ),
+                                            ],
+                                            child: ElevatedButton(
+                                              style: ButtonStyle(
+                                                backgroundColor:
+                                                    MaterialStateProperty.all(
+                                                        Color.fromRGBO(
+                                                            61, 61, 61, 1)),
+                                              ),
+                                              onPressed: () {
+                                                editDiaria(documentSnapshot.id
+                                                    .toString());
+                                              },
+                                              child: Container(
+                                                alignment: Alignment.topLeft,
+                                                padding: EdgeInsets.all(5),
+                                                child: Column(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.start,
+                                                  children: [
+                                                    Row(
+                                                      children: [
+                                                        Text(
+                                                          'Data: ${documentSnapshot['dPagamento']}',
+                                                          textAlign:
+                                                              TextAlign.start,
+                                                          style: TextStyle(
+                                                              color:
+                                                                  Colors.white,
+                                                              fontSize: 14,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w300),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    Row(
+                                                      children: [
+                                                        Text(
+                                                          '${documentSnapshot['nome']}',
+                                                          style: TextStyle(
+                                                              color:
+                                                                  Colors.white,
+                                                              fontSize: 16,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    Row(
+                                                      children: [
+                                                        Text(
+                                                          'R\$ ${documentSnapshot['valor']} - Status: ${documentSnapshot['status'] ? 'Pago' : 'Pendente'}',
+                                                          textAlign:
+                                                              TextAlign.start,
+                                                          style: TextStyle(
+                                                              color: documentSnapshot[
+                                                                      'status']
+                                                                  ? Colors.green
+                                                                  : Colors.red,
+                                                              fontSize: 14,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w300),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ],
                                                 ),
                                               ),
                                             ),
-                                          );
-                                        }));
-                              } else if (snapshot.hasError) {
-                                print('erro: ${snapshot.error.toString()}');
-                                return Center(
-                                  child: Text(
-                                      'error: ${snapshot.error.toString()}'),
-                                );
-                              }
+                                          ),
+                                        );
+                                      }));
+                            } else if (snapshot.hasError) {
+                              print('erro: ${snapshot.error.toString()}');
                               return Center(
-                                child: CircularProgressIndicator(),
+                                child:
+                                    Text('error: ${snapshot.error.toString()}'),
                               );
-                            },
-                          ),
+                            }
+                            return Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          },
                         ),
                       ),
                       Container(
