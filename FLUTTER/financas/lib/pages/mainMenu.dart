@@ -43,258 +43,268 @@ class _MainMenuState extends State<MainMenu> {
                   children: [
                     Container(
                       margin: EdgeInsets.only(top: 10, bottom: 10),
-                      padding: EdgeInsets.fromLTRB(0, 20, 0, 20),
+                      padding: EdgeInsets.fromLTRB(0, 10, 0, 10),
                       decoration: BoxDecoration(
                           color: Color.fromRGBO(38, 38, 38, 1),
                           borderRadius: BorderRadius.circular(20)),
                       width: MediaQuery.of(context).size.width * 0.90,
                       height: MediaQuery.of(context).size.height * 0.7,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          Row(
-                            mainAxisSize: MainAxisSize.max,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Image.asset(
-                                'assets/app/icon-man.png',
-                                width: 38.9,
-                                height: 44,
-                              ),
-                              SizedBox(width: 5),
-                              const Text(
-                                'CONTROLE FINANCEIRO ACADEMIA\n SUPER TREINO',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontFamily: 'Arial',
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  decoration: TextDecoration.none,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
-                          ),
-                          const Text(
-                            'BEM VINDO',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontFamily: 'Arial',
-                                fontSize: 30,
-                                fontWeight: FontWeight.bold),
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              ElevatedButton(
-                                onPressed: () {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) => GerirAlunos()));
-                                },
-                                style: ButtonStyle(
-                                  backgroundColor:
-                                      MaterialStateProperty.all<Color>(
-                                          Color.fromRGBO(61, 61, 61, 1)),
-                                ),
-                                child: SizedBox(
-                                  width: 110,
-                                  height: 110,
-                                  child: Column(
+                      child: LayoutBuilder(builder: (_, constraints) {
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  width: constraints.maxWidth,
+                                  height: constraints.maxHeight * .1,
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.max,
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Image.asset(
-                                        'assets/app/alunos.png',
-                                        width: 56,
+                                        'assets/app/icon-man.png',
+                                        width: 38.9,
+                                        height: 44,
                                       ),
-                                      SizedBox(
-                                        height: 5,
-                                      ),
-                                      Text(
-                                        'CADASTRAR',
+                                      SizedBox(width: 5),
+                                      const Text(
+                                        'CONTROLE FINANCEIRO ACADEMIA\n SUPER TREINO',
                                         style: TextStyle(
-                                            fontWeight: FontWeight.bold),
+                                          color: Colors.white,
+                                          fontFamily: 'Arial',
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          decoration: TextDecoration.none,
+                                        ),
+                                        textAlign: TextAlign.center,
                                       ),
                                     ],
                                   ),
-                                ),
-                              ),
-                              ElevatedButton(
-                                onPressed: () {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              Mensalidades()));
-                                },
-                                style: ButtonStyle(
-                                  backgroundColor:
-                                      MaterialStateProperty.all<Color>(
-                                          Color.fromRGBO(61, 61, 61, 1)),
-                                ),
-                                child: SizedBox(
-                                  width: 110,
-                                  height: 110,
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Image.asset(
-                                        'assets/app/mensalidades.png',
-                                        width: 56,
-                                      ),
-                                      SizedBox(
-                                        height: 5,
-                                      ),
-                                      Text(
-                                        'Mensalidades',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(
-                            height: 10,
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              ElevatedButton(
-                                onPressed: () {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) => DiariasPage()));
-                                },
-                                style: ButtonStyle(
-                                  backgroundColor:
-                                      MaterialStateProperty.all<Color>(
-                                          Color.fromRGBO(61, 61, 61, 1)),
-                                ),
-                                child: SizedBox(
-                                  width: 110,
-                                  height: 110,
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Image.asset(
-                                        'assets/app/diarias.png',
-                                        width: 56,
-                                      ),
-                                      SizedBox(
-                                        height: 5,
-                                      ),
-                                      Text(
-                                        'Diárias',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              ElevatedButton(
-                                onPressed: () {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              DespesasPage()));
-                                },
-                                style: ButtonStyle(
-                                  backgroundColor:
-                                      MaterialStateProperty.all<Color>(
-                                          Color.fromRGBO(61, 61, 61, 1)),
-                                ),
-                                child: SizedBox(
-                                  width: 110,
-                                  height: 110,
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Image.asset(
-                                        'assets/app/despesas.png',
-                                        width: 56,
-                                      ),
-                                      SizedBox(
-                                        height: 5,
-                                      ),
-                                      Text(
-                                        'Despesas',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          ElevatedButton(
-                              onPressed: () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => RelatorioPage()));
-                              },
-                              style: ButtonStyle(
-                                backgroundColor:
-                                    MaterialStateProperty.all<Color>(
-                                        Color.fromRGBO(61, 61, 61, 1)),
-                              ),
-                              child: SizedBox(
-                                width: 261,
-                                height: 43,
-                                child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Image.asset('assets/app/relatorio.png'),
-                                      Text(
-                                        'Relatório Geral',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ]),
-                              )),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              ElevatedButton(
-                                onPressed: () {
-                                  ScaffoldMessenger.of(context)
-                                      .clearSnackBars();
-                                  Future.delayed(Duration(milliseconds: 300))
-                                      .then((value) {
+                                )
+                              ],
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                ElevatedButton(
+                                  onPressed: () {
                                     Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                            builder: ((context) =>
-                                                const LoginPage())));
-                                  });
+                                            builder: (context) =>
+                                                GerirAlunos()));
+                                  },
+                                  style: ButtonStyle(
+                                    backgroundColor:
+                                        MaterialStateProperty.all<Color>(
+                                            Color.fromRGBO(61, 61, 61, 1)),
+                                  ),
+                                  child: SizedBox(
+                                    width: 110,
+                                    height: 110,
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Image.asset(
+                                          'assets/app/alunos.png',
+                                          width: 56,
+                                        ),
+                                        SizedBox(
+                                          height: 5,
+                                        ),
+                                        Text(
+                                          'CADASTRAR',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                Mensalidades()));
+                                  },
+                                  style: ButtonStyle(
+                                    backgroundColor:
+                                        MaterialStateProperty.all<Color>(
+                                            Color.fromRGBO(61, 61, 61, 1)),
+                                  ),
+                                  child: SizedBox(
+                                    width: 110,
+                                    height: 110,
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Image.asset(
+                                          'assets/app/mensalidades.png',
+                                          width: 56,
+                                        ),
+                                        SizedBox(
+                                          height: 5,
+                                        ),
+                                        Text(
+                                          'Mensalidades',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                ElevatedButton(
+                                  onPressed: () {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                DiariasPage()));
+                                  },
+                                  style: ButtonStyle(
+                                    backgroundColor:
+                                        MaterialStateProperty.all<Color>(
+                                            Color.fromRGBO(61, 61, 61, 1)),
+                                  ),
+                                  child: SizedBox(
+                                    width: 110,
+                                    height: 110,
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Image.asset(
+                                          'assets/app/diarias.png',
+                                          width: 56,
+                                        ),
+                                        SizedBox(
+                                          height: 5,
+                                        ),
+                                        Text(
+                                          'Diárias',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                DespesasPage()));
+                                  },
+                                  style: ButtonStyle(
+                                    backgroundColor:
+                                        MaterialStateProperty.all<Color>(
+                                            Color.fromRGBO(61, 61, 61, 1)),
+                                  ),
+                                  child: SizedBox(
+                                    width: 110,
+                                    height: 110,
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Image.asset(
+                                          'assets/app/despesas.png',
+                                          width: 56,
+                                        ),
+                                        SizedBox(
+                                          height: 5,
+                                        ),
+                                        Text(
+                                          'Despesas',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            ElevatedButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              RelatorioPage()));
                                 },
                                 style: ButtonStyle(
                                   backgroundColor:
                                       MaterialStateProperty.all<Color>(
                                           Color.fromRGBO(61, 61, 61, 1)),
                                 ),
-                                child: Container(
+                                child: SizedBox(
+                                  width: 261,
+                                  height: 43,
                                   child: Row(
-                                    children: const [
-                                      Icon(Icons.arrow_back),
-                                      Text('VOLTAR')
-                                    ],
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Image.asset('assets/app/relatorio.png'),
+                                        Text(
+                                          'Relatório Geral',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      ]),
+                                )),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                ElevatedButton(
+                                  onPressed: () {
+                                    ScaffoldMessenger.of(context)
+                                        .clearSnackBars();
+                                    Future.delayed(Duration(milliseconds: 300))
+                                        .then((value) {
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: ((context) =>
+                                                  const LoginPage())));
+                                    });
+                                  },
+                                  style: ButtonStyle(
+                                    backgroundColor:
+                                        MaterialStateProperty.all<Color>(
+                                            Color.fromRGBO(61, 61, 61, 1)),
+                                  ),
+                                  child: Container(
+                                    child: Row(
+                                      children: const [
+                                        Icon(Icons.arrow_back),
+                                        Text('VOLTAR')
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                              SizedBox(width: 10),
-                            ],
-                          ),
-                        ],
-                      ),
+                                SizedBox(width: 10),
+                              ],
+                            ),
+                          ],
+                        );
+                      }),
                     ),
                   ],
                 ),
