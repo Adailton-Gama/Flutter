@@ -44,7 +44,9 @@ class _LoginPageState extends State<LoginPage> {
                   color: Color.fromRGBO(38, 38, 38, 1),
                   borderRadius: BorderRadius.circular(19),
                 ),
-                child: Image.asset('assets/app/logo.png'),
+                child:
+                    //Image.network('https://i.imgur.com/5E5NDoG.png')
+                    Image.asset('assets/app/logo.png'),
               ),
               Flexible(
                 child: ListView(

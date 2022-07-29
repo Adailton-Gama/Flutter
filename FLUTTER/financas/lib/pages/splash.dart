@@ -33,7 +33,14 @@ class _SplashState extends State<Splash> {
                 color: Color.fromRGBO(61, 61, 61, 1),
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Image.asset(
+              child:
+                  // Image.network(
+                  //   'https://i.imgur.com/5E5NDoG.png',
+                  //   filterQuality: FilterQuality.high,
+                  //   width: 255,
+                  //   height: 230,
+                  // ),
+                  Image.asset(
                 'assets/app/logo.png',
                 filterQuality: FilterQuality.high,
                 width: 255,
